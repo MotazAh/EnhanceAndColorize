@@ -16,16 +16,20 @@ from keras.models import Sequential
 from scipy import spatial
 
 
-# Load pre-trained VGG16 model
-vgg16 = tf.keras.applications.vgg16.VGG16(weights='imagenet', include_top=True, pooling='max', input_shape=(224, 224, 3))
+# Load pre-trained InceptionV3 model
+effNetB4 = tf.keras.applications.EfficientNetB4(weights='imagenet', include_top=True, pooling='max', input_shape=(380, 380, 3))
+#effNetB4 = tf.keras.applications.VGG16(weights='imagenet', include_top=True, pooling='max', input_shape=(224, 224, 3))
 
 # Extract vector from layer "fc2"
-b_model = Model(vgg16.input, outputs = vgg16.get_layer('fc2').output)
+#for layer in effNetB4.layers:
+#    print(layer.name)
+b_model = Model(effNetB4.input, outputs = effNetB4.get_layer('block3a_se_squeeze').output)
+b_model.summary()
 
 # Get feature vector of an image
 def get_feature_vector(_img):
-  img = cv2.resize(_img, (224, 224))
-  feature_v = b_model.predict(img.reshape(1, 224, 224, 3))
+  img = cv2.resize(_img, (380, 380))
+  feature_v = b_model.predict(img.reshape(1, 380, 380, 3))
   return feature_v
 
 # Calculate cosine similarity
@@ -40,14 +44,21 @@ def get_image_similarity(img1, img2):
   return calculate_similarity(feature_v1, feature_v2)
 
 # Get top 3 similar images to an image from a dataset folder
-def find_top_images(img, img_dir):
+def find_top_images(img, img_dir_path):
   top1_score = 0
   top2_score = 0
   top3_score = 0
+  counter = 0
 
-  for file_name in os.listdir(img_dir):
-    file_path = os.path.join(img_dir, file_name)
-    img_ref = cv2.imread(file_path, 0)
+  img_dir = os.listdir(img_dir_path)
+  print("File count = " + str(len(img_dir)))
+
+  for file_name in img_dir:
+    file_path = os.path.join(img_dir_path, file_name)
+    img_ref = cv2.imread(file_path)
+    
+    counter += 1
+    print(counter)
 
     try:
       dummy = img_ref.shape
