@@ -6,6 +6,7 @@ import matplotlib.image as mpimg
 import h5py
 import cv2
 import os
+import tensorflow as tf
 
 from keras.layers import Flatten, Dense, Input,concatenate
 from keras.layers import Conv2D, MaxPooling2D
@@ -13,13 +14,13 @@ from keras.layers import Activation, Dropout
 from keras.models import Model
 from keras.models import Sequential
 from scipy import spatial
-import tensorflow as tf
+
 
 # Load pre-trained VGG16 model
-vgg16 = keras.applications.VGG16(weights='imagenet', include_top=True, pooling='max', input_shape=(224, 224, 3))
+vgg16 = tf.keras.applications.vgg16.VGG16(weights='imagenet', include_top=True, pooling='max', input_shape=(224, 224, 3))
 
 # Extract vector from layer "fc2"
-b_model = Model(input=vgg16.input, outputs = vgg16.get_layer('fc2').output)
+b_model = Model(vgg16.input, outputs = vgg16.get_layer('fc2').output)
 
 # Get feature vector of an image
 def get_feature_vector(_img):
