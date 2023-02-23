@@ -16,27 +16,24 @@ from keras.models import Sequential
 from scipy import spatial
 
 
-# Load pre-trained InceptionV3 model
-effNetB4 = tf.keras.applications.EfficientNetB4(weights='imagenet', include_top=True, pooling='max', input_shape=(380, 380, 3))
-#effNetB4 = tf.keras.applications.VGG16(weights='imagenet', include_top=True, pooling='max', input_shape=(224, 224, 3))
+# Load pre-trained VGG16 model
+VGG16 = tf.keras.applications.VGG16(weights='imagenet', include_top=True, pooling='max', input_shape=(224, 224, 3))
 
 # Extract vector from layer "fc2"
-#for layer in effNetB4.layers:
-#    print(layer.name)
-b_model = Model(effNetB4.input, outputs = effNetB4.get_layer('block3a_se_squeeze').output)
-b_model.summary()
+b_model = Model(VGG16.input, outputs = VGG16.get_layer('fc2').output)
+#b_model.summary()
 
 # Get feature vector of an image
 def get_feature_vector(_img):
-  img = cv2.resize(_img, (380, 380))
-  feature_v = b_model.predict(img.reshape(1, 380, 380, 3))
+  img = cv2.resize(_img, (224, 224))
+  feature_v = b_model.predict(img.reshape(1, 224, 224, 3))
   return feature_v
 
 # Calculate cosine similarity
 def calculate_similarity(v1, v2):
   return 1 - spatial.distance.cosine(v1, v2)
 
-# Get similarity between two images
+# Get similarity between two vectors
 def get_image_similarity(img1, img2):
   feature_v1 = get_feature_vector(img1)
   feature_v2 = get_feature_vector(img2)
@@ -53,6 +50,9 @@ def find_top_images(img, img_dir_path):
   img_dir = os.listdir(img_dir_path)
   print("File count = " + str(len(img_dir)))
 
+  # Feature vector of image to be compared with dataset
+  img_vect = get_feature_vector(img)
+
   for file_name in img_dir:
     file_path = os.path.join(img_dir_path, file_name)
     img_ref = cv2.imread(file_path)
@@ -65,7 +65,8 @@ def find_top_images(img, img_dir_path):
     except:
       print("Invalid image file while getting similarity: " + file_name)
 
-    score = get_image_similarity(img, img_ref)
+    img_ref_vect = get_feature_vector(img_ref)
+    score = calculate_similarity(img_vect, img_ref_vect)
     if score > top1_score:
       top1_image = img_ref
       top1_path = file_path
