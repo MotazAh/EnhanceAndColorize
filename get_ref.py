@@ -23,10 +23,12 @@ VGG16 = tf.keras.applications.VGG16(weights='imagenet', include_top=True, poolin
 b_model = Model(VGG16.input, outputs = VGG16.get_layer('fc2').output)
 #b_model.summary()
 
+image_size = 224
+
 # Get feature vector of an image
 def get_feature_vector(_img):
-  img = cv2.resize(_img, (224, 224))
-  feature_v = b_model.predict(img.reshape(1, 224, 224, 3))
+  img = cv2.resize(_img, (image_size, image_size))
+  feature_v = b_model.predict(img.reshape(1, image_size, image_size, 3))
   return feature_v
 
 # Calculate cosine similarity
@@ -42,8 +44,8 @@ def get_image_similarity(img1, img2):
 
 # Get top 2 similar images from a dataset folder
 def find_top_images(img, feature_dir_path):
-  top_score = 0
-  top2_score = 0
+  top_score = -1
+  top2_score = -1
   counter = 0
 
   feature_dir = os.listdir(feature_dir_path)
@@ -106,16 +108,3 @@ def parse_feature_file(file_path):
   y = x.astype(np.double)
   y = y.reshape(1, 4096)
   return y
-    
-
-
-
-
-
-
-
-
-
-
-
-
