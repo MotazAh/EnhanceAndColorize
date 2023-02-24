@@ -59,6 +59,8 @@ def find_top_images(img, feature_dir_path):
 
     # Gets image file name without .txt in the end
     file_path = os.path.join(feature_dir_path, file_name)
+    if file_path[-3:] != "txt":
+      continue
     img_ref_vect = parse_feature_file(file_path)
 
     score = calculate_similarity(img_vect, img_ref_vect)
