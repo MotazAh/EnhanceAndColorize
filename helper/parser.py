@@ -12,9 +12,10 @@ def refdata_parser():
 
 def train_parser():
     parser = argparse.ArgumentParser(description="synthetic data generation")
-    parser.add_argument("--img_path", type=str, required=True, help='Need image path')
-    parser.add_argument("--ref_path", type=str, required=True, help='Need ref image path')
+    parser.add_argument("--img_dir", type=str, required=True, help='Need image dir path')
+    parser.add_argument("--ref_dir", type=str, required=True, help='Need ref dir path')
+    parser.add_argument("--img_to_ref_dir", type=str, required=True, help='Need directory to image to ref mapping')
     parser.add_argument("--use_gpu", type=bool, default=False)
-
+    
     opt = parser.parse_args()
     return opt
