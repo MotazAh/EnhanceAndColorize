@@ -41,6 +41,7 @@ def get_feature_vector(_img):
   feature_v = model.predict(_img[np.newaxis, ...])
   feature_v = np.array(feature_v)
   feature_v = feature_v.flatten()
+  
   return feature_v
 
 # Calculate cosine similarity
@@ -55,13 +56,17 @@ def get_image_similarity(img1, img2):
   return calculate_similarity(feature_v1, feature_v2)
 
 # Get top 2 similar images from a dataset folder
-def find_top_images(img, feature_dir_path):
+def find_top_images(img_path, feature_dir_path):
   top_score = -1
   top2_score = -1
   counter = 0
 
   feature_dir = os.listdir(feature_dir_path)
   print("File count = " + str(len(feature_dir)))
+  
+  img = Image.open(img_path).convert('L').resize(IMAGE_SHAPE)  #1
+  img = np.stack((img,)*3, axis=-1)                       #2
+  img = np.array(img)/255.0  
 
   # Feature vector of image to be compared with dataset
   img_vect = get_feature_vector(img)
@@ -76,15 +81,15 @@ def find_top_images(img, feature_dir_path):
     if file_path[-3:] != "txt":
       continue
     img_ref_vect = parse_feature_file(file_path)
+  
+  score = calculate_similarity(img_vect, img_ref_vect)
 
-    score = calculate_similarity(img_vect, img_ref_vect)
-
-    if score > top_score:
-      top_image_name = file_name[:-4]
-      top_score = score
-    elif score > top2_score:
-      top2_image_name = file_name[:-4]
-      top2_score = score
+  if score > top_score:
+    top_image_name = file_name[:-4]
+    top_score = score
+  elif score > top2_score:
+    top2_image_name = file_name[:-4]
+    top2_score = score
 
   top_image_paths = [top_image_name, top2_image_name]
   return top_image_paths
@@ -95,7 +100,7 @@ def parse_feature_file(file_path):
     lines = f.read().splitlines()
   x = np.array(lines)
   y = x.astype(np.double)
-  y = y.reshape(1, 4096)
+  y = y.reshape(1280,)
   return y
 
 # Get feature vectors for all images in an image dir
