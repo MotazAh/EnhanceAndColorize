@@ -153,15 +153,25 @@ def get_feature_vectors(img_dir_path):
 
 
 if __name__ == '__main__':
-    # load training configuration from yaml file
-    opt = refdata_parser()
-    if opt.op == "get_features":
-      print("Getting Features")
-      get_feature_vectors(opt.data_dir)
-      print("Done")
-    elif opt.op == "get_ref":
-      print("Finding top 2 images")
-      img_name_list = find_top_images(opt.img_path, opt.feature_dir)
+  # load training configuration from yaml file
+  opt = refdata_parser()
+  if opt.op == "get_features":
+    print("Getting Features")
+    get_feature_vectors(opt.data_dir)
+    print("Done")
+  elif opt.op == "get_ref":
+    print("Finding top 2 images")
+    img_name_list = find_top_images(opt.img_path, opt.feature_dir)
+
+def run_operation(opt):
+  opt = refdata_parser()
+  if opt.op == "get_features":
+    print("Getting Features")
+    get_feature_vectors(opt.data_dir)
+    print("Done")
+  elif opt.op == "get_ref":
+    print("Finding top 2 images")
+    img_name_list = find_top_images(opt.img_path, opt.feature_dir)
     
 
     
