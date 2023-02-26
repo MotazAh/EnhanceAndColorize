@@ -45,16 +45,8 @@ def get_feature_vector(_img):
   
   return feature_v
 
-# Calculate cosine similarity
+# Calculate euclidean similarity
 def calculate_similarity(v1, v2):
-  #return 1 - spatial.distance.cosine(v1, v2)
-  # initializing points in
-  # numpy arrays
-  #point1 = np.array((1, 2, 3))
-  #point2 = np.array((1, 1, 1))
-  
-  # calculating Euclidean distance
-  # using linalg.norm()
   return np.linalg.norm(v1 - v2)
 
 # Get similarity between two vectors
@@ -97,29 +89,30 @@ def find_top_images(img_path, feature_dir_path):
   top_image_name = ""
   top2_image_name = ""
   counter = 0
-  for i in range (0, 1, 1):
-    print(i)
-    counter = 0
-    for img_ref_vect in img_ref_vects:
-      score = calculate_similarity(img_vect, img_ref_vect)
-      if score > 99999999999:
-        counter += 1
-        continue
-      if score < top_score:
-        top2_image_name = top_image_name
-        top2_score = top_score
-        top_image_name = img_ref_file_names[counter]
-        top_score = score
-      elif score < top2_score and img_ref_file_names[counter] != top_image_name:
-        top2_image_name = img_ref_file_names[counter]
-        top2_score = score
+
+  for img_ref_vect in img_ref_vects:
+    score = calculate_similarity(img_vect, img_ref_vect)
+    if score > 99999999999:
       counter += 1
+      continue
+    if score < top_score:
+      top2_image_name = top_image_name
+      top2_score = top_score
+      top_image_name = img_ref_file_names[counter]
+      top_score = score
+    elif score < top2_score and img_ref_file_names[counter] != top_image_name:
+      top2_image_name = img_ref_file_names[counter]
+      top2_score = score
+    counter += 1
   
-  if (top_score == -1):
+  if (top_score > 14):
     print("Could not find a good match")
 
   print("Top1 Image = " + top_image_name)
   print("Top2 Image = " + top2_image_name)
+  print("Top2 Score = " + str(top_score))
+  print("Top2 Score = " + str(top2_score))
+  
   top_image_paths = [top_image_name, top2_image_name]
   return top_image_paths
 

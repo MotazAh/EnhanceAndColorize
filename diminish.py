@@ -1,1 +1,0 @@
-""" Degrades images """
