@@ -72,25 +72,28 @@ def find_top_images(img_path, feature_dir_path):
   # Feature vector of image to be compared with dataset
   img_vect = get_feature_vector(img)
 
+  img_ref_vects = np.empty([len(feature_dir), 1280,])
   for file_name in feature_dir:
-    counter += 1
-    if (counter % 100) == 0:
+    if (counter % 99) == 0:
       print(counter)
-
     # Gets image file name without .txt in the end
     file_path = os.path.join(feature_dir_path, file_name)
     if file_path[-3:] != "txt":
-      continue
+      raise Exception("INVALID FILE IN FEATURES FOLDER")
     img_ref_vect = parse_feature_file(file_path)
+    img_ref_vects[counter] = img_ref_vect
+    counter += 1
   
-  score = calculate_similarity(img_vect, img_ref_vect)
+  score = calculate_similarity(img_vect, img_ref_vects[0])
 
-  if score > top_score:
-    top_image_name = file_name[:-4]
-    top_score = score
-  elif score > top2_score:
-    top2_image_name = file_name[:-4]
-    top2_score = score
+  for img_ref_vect in img_ref_vects:
+    score = calculate_similarity(img_vect, img_ref_vect)
+    if score > top_score:
+      top_image_name = file_name[:-4]
+      top_score = score
+    elif score > top2_score:
+      top2_image_name = file_name[:-4]
+      top2_score = score
 
   top_image_paths = [top_image_name, top2_image_name]
   return top_image_paths
@@ -132,11 +135,17 @@ def get_feature_vectors(img_dir_path):
 
 
 if __name__ == '__main__':
-    print("test")
     # load training configuration from yaml file
     opt = refdata_parser()
-    hypes = yaml_utils.load_yaml(opt.hypes_yaml, opt)
+    if opt.op == "get_features":
+      print("Getting Features")
+      get_feature_vectors(opt.data_dir)
+      print("Done")
+    elif opt.op == "get_ref":
+      print("Finding top 2 images")
+      img_name_list = find_top_images(opt.img_path, opt.feature_dir)
+      print("Top1 Image = " + img_name_list[0])
+      print("Top2 Image = " + img_name_list[1])
+    
 
-    # gpu setup
-    use_gpu = hypes['train_params']['use_gpu']
     

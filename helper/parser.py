@@ -2,11 +2,10 @@ import argparse
 
 def refdata_parser():
     parser = argparse.ArgumentParser(description="synthetic data generation")
-    parser.add_argument("--hypes_yaml", type=str, required=True, help='data generation yaml file needed ')
-    parser.add_argument('--model_dir', default='', help='Continued training path')
-    parser.add_argument("--crack_net", action='store_true')
-    parser.add_argument("--crack_dir", type=str, help='use this only when train colorization with pretrained '
-                                                      'cracknet')
-    parser.add_argument('--real_test', action='store_true')
+    parser.add_argument("--op", type=str, required=True, help='Operations: get_features, get_ref')
+    parser.add_argument("--img_path", type=str, required=False)
+    parser.add_argument("--data_dir", type=str, required=False)
+    parser.add_argument("--feature_dir", type=str, required=False)
+
     opt = parser.parse_args()
     return opt
