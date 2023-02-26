@@ -89,6 +89,15 @@ def find_top_images(img, feature_dir_path):
   top_image_paths = [top_image_name, top2_image_name]
   return top_image_paths
 
+# Gets the vectory feature array from a text file
+def parse_feature_file(file_path):
+  with open(file_path) as f:
+    lines = f.read().splitlines()
+  x = np.array(lines)
+  y = x.astype(np.double)
+  y = y.reshape(1, 4096)
+  return y
+
 # Get feature vectors for all images in an image dir
 def get_feature_vectors(img_dir_path):
   img_dir = os.listdir(img_dir_path)
@@ -114,15 +123,6 @@ def get_feature_vectors(img_dir_path):
     with open('Dataset/feature_vectors/' + file_name + '.txt', 'w') as f:
       for element in img_vect:
         f.write(str(element) + '\n')
-
-# Gets the vectory feature array from a text file
-def parse_feature_file(file_path):
-  with open(file_path) as f:
-    lines = f.read().splitlines()
-  x = np.array(lines)
-  y = x.astype(np.double)
-  y = y.reshape(1, 4096)
-  return y
 
 """
 if __name__ == '__main__':
