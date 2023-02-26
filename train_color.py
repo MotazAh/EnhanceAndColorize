@@ -80,10 +80,6 @@ def train(opt):
                 gt_l = gt_l.cuda()
                 ref_gray = ref_gray.cuda()
                 ref_ab = ref_ab.cuda()
-            # if the cracknet is also involved, then use it to restore
-            # the image first
-            if opt.crack_dir:
-                input_l = crack_net(input_l)['output']
 
             # model inference and loss cal
             out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
@@ -118,12 +114,12 @@ def train(opt):
 
         # evaluate model on validation dataset
         if epoch % hypes['train_params']['eval_freq'] == 0:
-            writer = helper.val_eval(model, att_model, loader_val, writer, opt, epoch, crack_net)
+            writer = helper.val_eval(model, att_model, loader_val, writer, opt, epoch)
 
         if epoch % hypes['train_params']['writer_freq'] == 0:
             torch.save(model.state_dict(), os.path.join(saved_path, 'net_epoch%d.pth' % (epoch + 1)))
 
-    return model, att_model, crack_net, writer
+    return model, att_model, writer
 
 
   pass
