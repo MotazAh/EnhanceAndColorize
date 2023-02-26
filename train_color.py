@@ -4,6 +4,11 @@ import get_ref
 from helper.parser import train_parser
 
 def train():
+  ''' TODOs: 
+    -LOAD DATASET
+    -CREATE ATTENUATION MODEL
+    -
+  '''
   pass
 
 if __name__ == '__main__':
