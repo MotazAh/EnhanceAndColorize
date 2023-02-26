@@ -1,6 +1,6 @@
 import argparse
 
-def data_parser():
+def refdata_parser():
     parser = argparse.ArgumentParser(description="synthetic data generation")
     parser.add_argument("--hypes_yaml", type=str, required=True, help='data generation yaml file needed ')
     parser.add_argument('--model_dir', default='', help='Continued training path')
