@@ -47,7 +47,15 @@ def get_feature_vector(_img):
 
 # Calculate cosine similarity
 def calculate_similarity(v1, v2):
-  return 1 - spatial.distance.cosine(v1, v2)
+  #return 1 - spatial.distance.cosine(v1, v2)
+  # initializing points in
+  # numpy arrays
+  #point1 = np.array((1, 2, 3))
+  #point2 = np.array((1, 1, 1))
+  
+  # calculating Euclidean distance
+  # using linalg.norm()
+  return np.linalg.norm(v1 - v2)
 
 # Get similarity between two vectors
 def get_image_similarity(img1, img2):
@@ -58,13 +66,9 @@ def get_image_similarity(img1, img2):
 
 # Get top 2 similar images from a dataset folder
 def find_top_images(img_path, feature_dir_path):
-  top_score = -1
-  top2_score = -1
-  counter = 0
-
   feature_dir = os.listdir(feature_dir_path)
   print("File count = " + str(len(feature_dir)))
-  
+  print("Img path = " + str(img_path))
   img = Image.open(img_path).convert('L').resize(IMAGE_SHAPE)  #1
   img = np.stack((img,)*3, axis=-1)                       #2
   img = np.array(img)/255.0  
@@ -73,28 +77,49 @@ def find_top_images(img_path, feature_dir_path):
   img_vect = get_feature_vector(img)
 
   img_ref_vects = np.empty([len(feature_dir), 1280,])
+  img_ref_file_names = []
+
+  counter = 0
   for file_name in feature_dir:
-    if (counter % 99) == 0:
-      print(counter)
+    if ((counter + 1) % 100) == 0:
+      print(counter + 1)
     # Gets image file name without .txt in the end
     file_path = os.path.join(feature_dir_path, file_name)
     if file_path[-3:] != "txt":
       raise Exception("INVALID FILE IN FEATURES FOLDER")
-    img_ref_vect = parse_feature_file(file_path)
-    img_ref_vects[counter] = img_ref_vect
+    img_ref_vects[counter] = parse_feature_file(file_path)
+    img_ref_file_names.append(file_name[:-4])
     counter += 1
   
-  score = calculate_similarity(img_vect, img_ref_vects[0])
+  top_score = 9999999999
+  top2_score = 9999999999
+  
+  top_image_name = ""
+  top2_image_name = ""
+  counter = 0
+  for i in range (0, 1, 1):
+    print(i)
+    counter = 0
+    for img_ref_vect in img_ref_vects:
+      score = calculate_similarity(img_vect, img_ref_vect)
+      if score > 99999999999:
+        counter += 1
+        continue
+      if score < top_score:
+        top2_image_name = top_image_name
+        top2_score = top_score
+        top_image_name = img_ref_file_names[counter]
+        top_score = score
+      elif score < top2_score and img_ref_file_names[counter] != top_image_name:
+        top2_image_name = img_ref_file_names[counter]
+        top2_score = score
+      counter += 1
+  
+  if (top_score == -1):
+    print("Could not find a good match")
 
-  for img_ref_vect in img_ref_vects:
-    score = calculate_similarity(img_vect, img_ref_vect)
-    if score > top_score:
-      top_image_name = file_name[:-4]
-      top_score = score
-    elif score > top2_score:
-      top2_image_name = file_name[:-4]
-      top2_score = score
-
+  print("Top1 Image = " + top_image_name)
+  print("Top2 Image = " + top2_image_name)
   top_image_paths = [top_image_name, top2_image_name]
   return top_image_paths
 
@@ -144,8 +169,6 @@ if __name__ == '__main__':
     elif opt.op == "get_ref":
       print("Finding top 2 images")
       img_name_list = find_top_images(opt.img_path, opt.feature_dir)
-      print("Top1 Image = " + img_name_list[0])
-      print("Top2 Image = " + img_name_list[1])
     
 
     
