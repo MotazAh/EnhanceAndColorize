@@ -1,5 +1,6 @@
 *
 !feature_vectors
+!ref_feature_vectors
 !RealRef
 !TestRef
 !TrainRef
