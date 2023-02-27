@@ -56,64 +56,80 @@ def get_image_similarity(img1, img2):
 
   return calculate_similarity(feature_v1, feature_v2)
 
-# Get top 2 similar images from a dataset folder
-def find_top_images(img_path, feature_dir_path):
+# Get top similar image for each image in a directory
+def find_all_top_images(img_dir_path, feature_dir_path):
+  img_dir = os.listdir(feature_dir_path)
+
+  for img_file_name in img_dir:
+    img_path = os.path.join(img_dir_path, img_file_name)
+    top_img = find_top_image(img_path, feature_dir_path, verbose=False)[0]
+
+def feature_reader(feature_dir_path, ref_dir):
   feature_dir = os.listdir(feature_dir_path)
-  print("File count = " + str(len(feature_dir)))
-  print("Img path = " + str(img_path))
-  img = Image.open(img_path).convert('L').resize(IMAGE_SHAPE)  #1
-  img = np.stack((img,)*3, axis=-1)                       #2
-  img = np.array(img)/255.0  
-
-  # Feature vector of image to be compared with dataset
-  img_vect = get_feature_vector(img)
-
-  img_ref_vects = np.empty([len(feature_dir), 1280,])
-  img_ref_file_names = []
+  print("Feature File count = " + str(len(feature_dir) - 1))
+  
+  global img_ref_vects
+  global img_ref_file_paths
+  img_ref_file_paths = []
+  img_ref_vects = np.empty([len(feature_dir) - 1, 1280,])
 
   counter = 0
+  print("Reading features")
   for file_name in feature_dir:
-    if ((counter + 1) % 100) == 0:
+    if (counter + 1) % 100 == 0:
       print(counter + 1)
     # Gets image file name without .txt in the end
     file_path = os.path.join(feature_dir_path, file_name)
     if file_path[-3:] != "txt":
-      raise Exception("INVALID FILE IN FEATURES FOLDER")
+      if file_path[-6:] == "ignore":
+        print("Ignoring .gitignore")
+        continue
+      raise Exception("INVALID FILE IN FEATURES FOLDER: " + file_path)
     img_ref_vects[counter] = parse_feature_file(file_path)
-    img_ref_file_names.append(file_name[:-4])
+    img_ref_file_paths.append(file_path[:-4])
     counter += 1
+
+# Get top 2 similar images from a dataset folder
+def find_top_image(img_path, verbose=True):
+  print("Img path = " + str(img_path))
+  img = Image.open(img_path).convert('L').resize(IMAGE_SHAPE)  #1
+  img = np.stack((img,)*3, axis=-1)                       #2
+  img = np.array(img)/255.0
+
+  # Feature vector of image to be compared with dataset
+  img_vect = get_feature_vector(img)
   
   top_score = 9999999999
   top2_score = 9999999999
   
-  top_image_name = ""
-  top2_image_name = ""
+  top_image_path = ""
+  top2_image_path = ""
   counter = 0
 
   for img_ref_vect in img_ref_vects:
     score = calculate_similarity(img_vect, img_ref_vect)
-    if score > 99999999999:
+    if score < 0.01: # Skip same image
       counter += 1
       continue
     if score < top_score:
-      top2_image_name = top_image_name
+      top2_image_path = top_image_path
       top2_score = top_score
-      top_image_name = img_ref_file_names[counter]
+      top_image_path = img_ref_file_paths[counter]
       top_score = score
-    elif score < top2_score and img_ref_file_names[counter] != top_image_name:
-      top2_image_name = img_ref_file_names[counter]
+    elif score < top2_score and img_ref_file_paths[counter] != top_image_path:
+      top2_image_path = img_ref_file_paths[counter]
       top2_score = score
     counter += 1
   
-  if (top_score > 14):
-    print("Could not find a good match")
-
-  print("Top1 Image = " + top_image_name)
-  print("Top2 Image = " + top2_image_name)
-  print("Top2 Score = " + str(top_score))
-  print("Top2 Score = " + str(top2_score))
+  if verbose == True:
+    if top_score > 14:
+      print("Could not find a good match")
+    print("Top1 Image = " + top_image_path)
+    print("Top2 Image = " + top2_image_path)
+    print("Top Score = " + str(top_score))
+    print("Top2 Score = " + str(top2_score))
   
-  top_image_paths = [top_image_name, top2_image_name]
+  top_image_paths = [top_image_path, top2_image_path]
   return top_image_paths
 
 # Gets the vectory feature array from a text file
@@ -160,8 +176,9 @@ if __name__ == '__main__':
     get_feature_vectors(opt.data_dir)
     print("Done")
   elif opt.op == "get_ref":
+    feature_reader(opt.feature_dir)
     print("Finding top 2 images")
-    img_name_list = find_top_images(opt.img_path, opt.feature_dir)
+    img_name_list = find_top_image(opt.img_path, verbose=True)
 
 def run_operation(opt):
   opt = refdata_parser()
@@ -170,8 +187,9 @@ def run_operation(opt):
     get_feature_vectors(opt.data_dir)
     print("Done")
   elif opt.op == "get_ref":
+    feature_reader(opt.feature_dir)
     print("Finding top 2 images")
-    img_name_list = find_top_images(opt.img_path, opt.feature_dir)
+    img_name_list = find_top_image(opt.img_path, verbose=True)
     
 
     

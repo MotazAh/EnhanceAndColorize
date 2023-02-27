@@ -38,8 +38,8 @@ class OldPhotoDataset(Dataset):
         for folder in self.root_dir:
             gt_images = sorted([os.path.join(folder, x)
                                 for x in os.listdir(folder) if x.endswith('.jpg') or x.endswith('.png')])
-            print(gt_images.shape)
-            print(gt_imgages)
+            print(gt_images)
+            raise Exception("Test")
             if ref_json:
                 ref_json_files = [os.path.join(folder, 'matches', os.path.split(x)[1][:-3] + 'json')
                                   for x in gt_images]
