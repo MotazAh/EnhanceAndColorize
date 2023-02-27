@@ -1,7 +1,7 @@
 import os
 
 import get_ref
-from helper.parser import train_parser
+from utils.parser import train_parser
 
 import torch
 import torch.optim.lr_scheduler as lr_scheduler
@@ -35,22 +35,22 @@ def train(opt):
   use_gpu = opt.use_gpu
   if use_gpu:
     att_model.cuda()
-    #model.cuda()
+    model.cuda()
   
-  #criterion = helper.setup_loss(hypes)
-  #optimizer = helper.setup_optimizer(hypes['train_params']['solver'], model)
-  #scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
+  criterion = helper.setup_loss(hypes)
+  optimizer = helper.setup_optimizer(hypes['train_params']['solver'], model)
+  scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 
-  # load saved model for continue training or train from scratch
-  #  if opt.model_dir:
-  #    saved_path = opt.model_dir
-  #    init_epoch, model = helper.load_saved_model(saved_path, model)
-  #  else:
-  #    # setup saved model folder
-  #    init_epoch = 0
-  #    saved_path = helper.setup_train(hypes)
+   load saved model for continue training or train from scratch
+    if opt.model_dir:
+      saved_path = opt.model_dir
+      init_epoch, model = helper.load_saved_model(saved_path, model)
+    else:
+      # setup saved model folder
+      init_epoch = 0
+      saved_path = helper.setup_train(hypes)
 
-  #writer = SummaryWriter(saved_path)
+  writer = SummaryWriter(saved_path)
 
   print('Training Start')
   #epoches = hypes['train_params']['epoches']

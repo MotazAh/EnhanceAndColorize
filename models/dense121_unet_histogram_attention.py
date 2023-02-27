@@ -19,6 +19,9 @@ class DoubleConv(nn.Module):
 class Up(nn.Module):
   pass
 
+
+
 # For colorization network
 class Dense121UnetHistogramAttention(nn.Module):
   pass
+
