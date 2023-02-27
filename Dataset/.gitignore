@@ -1,3 +1,11 @@
 *
 !feature_vectors
+!RealRef
+!TestRef
+!TrainRef
+!ValRef
+!Train
+!Val
+!Test
+!Real
 !.gitignore
