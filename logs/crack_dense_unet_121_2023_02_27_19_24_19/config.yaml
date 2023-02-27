@@ -1,0 +1,58 @@
+arch:
+  args:
+    bilinear: true
+    drop_rate: 0.5
+    growthRate: 32
+    input_channel: 2
+    nDenseLayer:
+    - 8
+    - 12
+    - 6
+    - 4
+    pretrained: false
+    scale: 4
+  backbone: dense121_unet_histogram_attention
+crack_arch:
+  args:
+    bilinear: true
+    drop_rate: 0.5
+    growthRate: 32
+    input_channel: 1
+    nDenseLayer:
+    - 8
+    - 12
+    - 6
+    - 4
+    pretrained: false
+    scale: 4
+  backbone: dense121_unet
+name: crack_dense_unet_121
+real_file: Dataset/img_to_ref_maps/train_map.txt
+test_file: Dataset/img_to_ref_maps/train_map.txt
+train_file: Dataset/img_to_ref_maps/train_map.txt
+train_params:
+  batch_size: 2
+  display_freq: 5
+  epoches: 51
+  eval_freq: 1
+  gpu_id: 0
+  loss:
+    histogram:
+      args: false
+      weight: 0.1
+    l1:
+      args: false
+      weight: 1.0
+    ssim:
+      args: false
+      weight: 1.0
+  ref_json: false
+  solver:
+    lr: 0.0001
+    name: Adam
+    params:
+      eps: 1.0e-10
+      weight_decay: 0.0001
+  use_gpu: false
+  writer_freq: 5
+val_file: Dataset/img_to_ref_maps/train_map.txt

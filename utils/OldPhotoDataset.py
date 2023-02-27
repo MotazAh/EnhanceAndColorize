@@ -41,9 +41,11 @@ class OldPhotoDataset(Dataset):
         self.map_dir = map_dir
         img_to_ref_pairs = parse_map_file(self.map_dir)
         self.gt_images = []
+        self.ref_images = []
         
         for pair in img_to_ref_pairs:
-          self.gt_images += pair[0]
+          self.gt_images.append(pair[0])
+          self.ref_images.append(pair[1])
         """
         for folder in self.root_dir:
             gt_images = sorted([os.path.join(folder, x)
@@ -72,7 +74,9 @@ class OldPhotoDataset(Dataset):
         input_image = np.expand_dims(cv2.cvtColor(gt_image, cv2.COLOR_BGR2GRAY), -1)
 
         data = {'input_image': input_image, 'gt_image': gt_image}
-
+        ref_image = cv2.cvtColor(cv2.imread(self.ref_images[idx]), cv2.COLOR_BGR2RGB)
+        data.update({"ref_image": ref_image})
+        """
         if self.ref_json:
             gt_json_name = self.ref_json_files[idx]
             with open(gt_json_name, 'r') as f:
@@ -82,7 +86,9 @@ class OldPhotoDataset(Dataset):
             ref_name = os.path.join(os.path.dirname(gt_image_name), match_json[random_seed]['name'] + '.jpg')
             ref_image = cv2.cvtColor(cv2.imread(ref_name), cv2.COLOR_BGR2RGB)
 
-            data.update({'ref_image': ref_image})
+            data.update({'ref_image': ref_image})"""
+
+
 
         if self.transform:
             data = self.transform(data)
