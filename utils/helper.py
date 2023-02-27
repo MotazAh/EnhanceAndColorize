@@ -15,7 +15,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
 from utils import loss
-#from datasets.OldPhotoDataset import *
+from utils.OldPhotoDataset import *
 from utils.customized_transform import *
 
 def setup_train(hypes):

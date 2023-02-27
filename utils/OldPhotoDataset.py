@@ -1,7 +1,7 @@
 """
 Customized dataset class for old photo
 """
-from datasets.customized_transform import *
+from utils.customized_transform import *
 
 import os
 import itertools
@@ -38,6 +38,8 @@ class OldPhotoDataset(Dataset):
         for folder in self.root_dir:
             gt_images = sorted([os.path.join(folder, x)
                                 for x in os.listdir(folder) if x.endswith('.jpg') or x.endswith('.png')])
+            print(gt_images.shape)
+            print(gt_imgages)
             if ref_json:
                 ref_json_files = [os.path.join(folder, 'matches', os.path.split(x)[1][:-3] + 'json')
                                   for x in gt_images]

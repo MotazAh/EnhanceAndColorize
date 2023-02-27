@@ -1,12 +1,20 @@
 name: crack_dense_unet_121
 train_file:
-  - dataset/val2017
+  - Dataset/val2017
+train_ref_file:
+  - Dataset/TrainRef
 val_file:
-  - dataset/val2017
+  - Dataset/val2017
+val_ref_file:
+  - Dataset/ValRef
 test_file:
-  - dataset/val2017
+  - Dataset/val2017
+test_ref_file:
+  - Dataset/TestRef
 real_file:
-  - dataset/real_old_resize/
+  - Dataset/real_old_resize
+real_ref_file:
+  - Dataset/RealRef
 train_params:
   solver:
     name: Adam
