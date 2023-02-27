@@ -57,41 +57,26 @@ def get_image_similarity(img1, img2):
   return calculate_similarity(feature_v1, feature_v2)
 
 # Get top similar image for each image in a directory
-def find_all_top_images(img_dir_path, feature_dir_path):
-  img_dir = os.listdir(feature_dir_path)
-
-  for img_file_name in img_dir:
-    img_path = os.path.join(img_dir_path, img_file_name)
-    top_img = find_top_image(img_path, feature_dir_path, verbose=False)[0]
-
-def feature_reader(feature_dir_path, ref_dir):
-  feature_dir = os.listdir(feature_dir_path)
-  print("Feature File count = " + str(len(feature_dir) - 1))
-  
-  global img_ref_vects
-  global img_ref_file_paths
-  img_ref_file_paths = []
-  img_ref_vects = np.empty([len(feature_dir) - 1, 1280,])
+def find_all_top_images(img_dir_path):
+  img_dir = os.listdir(img_dir_path)
+  img_to_ref = []
 
   counter = 0
-  print("Reading features")
-  for file_name in feature_dir:
+  for img_file_name in img_dir:
     if (counter + 1) % 100 == 0:
       print(counter + 1)
-    # Gets image file name without .txt in the end
-    file_path = os.path.join(feature_dir_path, file_name)
-    if file_path[-3:] != "txt":
-      if file_path[-6:] == "ignore":
-        print("Ignoring .gitignore")
-        continue
-      raise Exception("INVALID FILE IN FEATURES FOLDER: " + file_path)
-    img_ref_vects[counter] = parse_feature_file(file_path)
-    img_ref_file_paths.append(file_path[:-4])
+    img_path = os.path.join(img_dir_path, img_file_name)
+    top_img_path = find_top_image(img_path, verbose=False)[0]
+    img_to_ref.append([img_path, top_img_path])
     counter += 1
+
+  return img_to_ref
+  
 
 # Get top 2 similar images from a dataset folder
 def find_top_image(img_path, verbose=True):
-  print("Img path = " + str(img_path))
+  if verbose:
+    print("Img path = " + str(img_path))
   img = Image.open(img_path).convert('L').resize(IMAGE_SHAPE)  #1
   img = np.stack((img,)*3, axis=-1)                       #2
   img = np.array(img)/255.0
@@ -129,8 +114,33 @@ def find_top_image(img_path, verbose=True):
     print("Top Score = " + str(top_score))
     print("Top2 Score = " + str(top2_score))
   
-  top_image_paths = [top_image_path, top2_image_path]
-  return top_image_paths
+  return [top_image_path, top2_image_path]
+
+def feature_reader(feature_dir_path, ref_dir):
+  feature_dir = os.listdir(feature_dir_path)
+  print("Feature File count = " + str(len(feature_dir) - 1))
+  
+  global img_ref_vects
+  global img_ref_file_paths
+  img_ref_file_paths = []
+  img_ref_vects = np.empty([len(feature_dir) - 1, 1280,])
+
+  counter = 0
+  print("Reading features")
+  for file_name in feature_dir:
+    if (counter + 1) % 100 == 0:
+      print(counter + 1)
+    # Gets image file name without .txt in the end
+    file_path = os.path.join(feature_dir_path, file_name)
+    if file_path[-3:] != "txt":
+      if file_path[-6:] == "ignore":
+        print("Ignoring .gitignore")
+        continue
+      raise Exception("INVALID FILE IN FEATURES FOLDER: " + file_path)
+    img_ref_vects[counter] = parse_feature_file(file_path)
+    ref_img_path = os.path.join(ref_dir, file_name[:-4])
+    img_ref_file_paths.append(ref_img_path)
+    counter += 1
 
 # Gets the vectory feature array from a text file
 def parse_feature_file(file_path):
@@ -167,19 +177,6 @@ def get_feature_vectors(img_dir_path):
       for element in img_vect:
         f.write(str(element) + '\n')
 
-
-if __name__ == '__main__':
-  # load training configuration from yaml file
-  opt = refdata_parser()
-  if opt.op == "get_features":
-    print("Getting Features")
-    get_feature_vectors(opt.data_dir)
-    print("Done")
-  elif opt.op == "get_ref":
-    feature_reader(opt.feature_dir)
-    print("Finding top 2 images")
-    img_name_list = find_top_image(opt.img_path, verbose=True)
-
 def run_operation(opt):
   opt = refdata_parser()
   if opt.op == "get_features":
@@ -187,9 +184,20 @@ def run_operation(opt):
     get_feature_vectors(opt.data_dir)
     print("Done")
   elif opt.op == "get_ref":
-    feature_reader(opt.feature_dir)
+    feature_reader(opt.feature_dir, opt.ref_dir)
     print("Finding top 2 images")
-    img_name_list = find_top_image(opt.img_path, verbose=True)
+    return find_top_image(opt.img_path, verbose=True)
+  elif opt.op == "get_refs":
+    feature_reader(opt.feature_dir, opt.ref_dir)
+    print("Finding top images")
+    return find_all_top_images(opt.img_path)
+
+if __name__ == '__main__':
+  # load training configuration from yaml file
+  opt = refdata_parser()
+  run_operation(opt)
+
+
     
 
     
