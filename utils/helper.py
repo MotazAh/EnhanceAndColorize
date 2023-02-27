@@ -68,7 +68,7 @@ def setup_train_crack(hypes, model_name='cracknet_rdn'):
     return full_path
 
 
-def create_dataset(hypes, train=True, gan=False, real=False, crack_dir=None):
+def create_dataset(hypes, train=True, real=False):
     """
     create customized Datasets
     :param gan: Whether for gan training
@@ -104,9 +104,8 @@ def create_dataset(hypes, train=True, gan=False, real=False, crack_dir=None):
                                                   TolABTensor()])
 
         train_dataset = OldPhotoDataset(hypes['train_file'],
-                                        transform=transform_operation,
-                                        ref_json=hypes['train_params'][
-                                            'ref_json'])
+                                        transform=transform_operation
+                                        )
         loader_train = DataLoader(train_dataset,
                                   batch_size=hypes['train_params']['batch_size'],
                                   shuffle=True,
@@ -195,25 +194,6 @@ def setup_loss(hypes):
             if hypes['train_params']['use_gpu']:
                 loss_func.cuda()
             criterion['intermediate_' + name] = loss_func
-
-    return criterion
-
-
-def setup_gan_loss(hypes, dis=False):
-    """
-    Setup loss function for gan training
-    :param hypes:
-    :param dis:
-    :return:
-    """
-    criterion = {}
-    if not dis:
-        criterion = setup_loss(hypes)
-    for name, value in hypes['gan']['loss'].items():
-        loss_func = getattr(loss, name)(value['args'])
-        if hypes['train_params']['use_gpu']:
-            loss_func.cuda()
-        criterion.update({name: loss_func})
 
     return criterion
 

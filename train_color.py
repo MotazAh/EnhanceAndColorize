@@ -17,27 +17,23 @@ from hypes_yaml import yaml_utils
 
 def train(opt, hypes):
   ''' TODOs: 
-    -LOAD DATASET
-    -CREATE ATTENUATION MODEL
-    -ADD OPTIMIZER
-    -ADD SCHEDULER
     -ADD LOADING MODEL MECHANIC
     -ADD TRAINING
-
   '''
   
   print('loading dataset')
   # Real test is for testing real grayscale old images (Not available currently)
   loader_train, loader_val = helper.create_dataset(hypes,
                                                    train=True,
-                                                   real=False,
-                                                   crack_dir=False)
+                                                   real=False)
 
+  print("Setting resnet34 and attention model")
   base_resnet = resnet34(pretrained=True)
   att_model = AttentionExtractModule(BasicBlock, [3, 4, 6, 3])
   att_model.load_state_dict(base_resnet.state_dict())
   att_model.eval()
 
+  print("Creating model")
   model = helper.create_model(hypes)
 
   use_gpu = opt.use_gpu
@@ -45,19 +41,25 @@ def train(opt, hypes):
     att_model.cuda()
     model.cuda()
   
+  print("Setting criterion")
   criterion = helper.setup_loss(hypes)
+  print("Setting optimizer")
   optimizer = helper.setup_optimizer(hypes['train_params']['solver'], model)
+  print("Setting scheduler")
   scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 
    # load saved model for continue training or train from scratch
   if opt.model_dir:
+    print("Loading previous model")
     saved_path = opt.model_dir
     init_epoch, model = helper.load_saved_model(saved_path, model)
   else:
+    print("Initializing save model folder")
     # setup saved model folder
     init_epoch = 0
     saved_path = helper.setup_train(hypes)
 
+  print("Setting Summary Writer")
   writer = SummaryWriter(saved_path)
 
   print('Training Start')

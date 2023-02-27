@@ -17,24 +17,34 @@ from torchvision import transforms
 
 from utils.color_space_convert import lab_to_rgb
 
+def parse_map_file(map_path):
+  pairs = []
+  with open(map_path) as f:
+    lines = f.read().splitlines()
+  for line in lines:
+    pairs.append(line.split(","))
+  return pairs
 
 class OldPhotoDataset(Dataset):
     """
     Dataset should have a pair of data
     """
 
-    def __init__(self, root_dir, transform=transforms.Compose([ToTensor()]), ref_json=False):
+    def __init__(self, map_dir, transform=transforms.Compose([ToTensor()])):
         """
         Args:
             :param root_dir: the path that contain all groundtruth and input images
             :param transform: callable function to do transform on origin data pair
             :param ref_json: whether load reference image from json
         """
-        self.root_dir = root_dir
+        
+        self.map_dir = map_dir
+        img_to_ref_pairs = parse_map_file(self.map_dir)
         self.gt_images = []
-        self.ref_json_files = []
-        self.ref_json = ref_json
-
+        
+        for pair in img_to_ref_pairs:
+          self.gt_images += pair[0]
+        """
         for folder in self.root_dir:
             gt_images = sorted([os.path.join(folder, x)
                                 for x in os.listdir(folder) if x.endswith('.jpg') or x.endswith('.png')])
@@ -45,7 +55,7 @@ class OldPhotoDataset(Dataset):
                                   for x in gt_images]
                 self.ref_json_files += ref_json_files
 
-            self.gt_images += gt_images
+            self.gt_images += gt_images"""
 
         self.transform = transform
 

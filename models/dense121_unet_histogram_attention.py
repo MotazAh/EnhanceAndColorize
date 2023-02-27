@@ -23,5 +23,10 @@ class Up(nn.Module):
 
 # For colorization network
 class Dense121UnetHistogramAttention(nn.Module):
-  pass
+  def __init__(self, args, color_pretrain=False, growth_rate=32, block_config=(6, 12, 24, 48),
+                 num_init_features=64, bn_size=4):
+    pass
+
+  def forward(self, x, x_gray, ref, ref_gray, att_model):
+    return x
 
