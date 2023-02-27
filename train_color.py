@@ -13,8 +13,9 @@ from torchvision.models.resnet import BasicBlock, Bottleneck
 from utils import helper, loss
 from utils.color_space_convert import lab_to_rgb
 from models.networks import AttentionExtractModule
+from hypes_yaml import yaml_utils
 
-def train(opt):
+def train(opt, hypes):
   ''' TODOs: 
     -LOAD DATASET
     -CREATE ATTENUATION MODEL
@@ -25,12 +26,18 @@ def train(opt):
 
   '''
   
+  print('loading dataset')
+  loader_train, loader_val = helper.create_dataset(hypes,
+                                                   train=True,
+                                                   real=opt.real_test,
+                                                   crack_dir=opt.crack_dir)
+
   base_resnet = resnet34(pretrained=True)
   att_model = AttentionExtractModule(BasicBlock, [3, 4, 6, 3])
   att_model.load_state_dict(base_resnet.state_dict())
   att_model.eval()
 
-  model = helper.create_model()
+  model = helper.create_model(hypes)
 
   use_gpu = opt.use_gpu
   if use_gpu:
@@ -41,19 +48,19 @@ def train(opt):
   optimizer = helper.setup_optimizer(hypes['train_params']['solver'], model)
   scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 
-   load saved model for continue training or train from scratch
-    if opt.model_dir:
-      saved_path = opt.model_dir
-      init_epoch, model = helper.load_saved_model(saved_path, model)
-    else:
-      # setup saved model folder
-      init_epoch = 0
-      saved_path = helper.setup_train(hypes)
+   # load saved model for continue training or train from scratch
+  if opt.model_dir:
+    saved_path = opt.model_dir
+    init_epoch, model = helper.load_saved_model(saved_path, model)
+  else:
+    # setup saved model folder
+    init_epoch = 0
+    saved_path = helper.setup_train(hypes)
 
   writer = SummaryWriter(saved_path)
 
   print('Training Start')
-  #epoches = hypes['train_params']['epoches']
+  epoches = hypes['train_params']['epoches']
   step = 0
   for epoch in range(init_epoch, max(epoches, init_epoch)):
         scheduler.step(epoch)
@@ -71,7 +78,6 @@ def train(opt):
                                                                    batch_data['gt_ab'], batch_data['gt_L'], \
                                                                    batch_data['ref_gray'], batch_data['ref_ab']
             
-            print(ref_ab.shape)
             
             if use_gpu:
                 input_batch = input_batch.cuda()
@@ -119,7 +125,7 @@ def train(opt):
         if epoch % hypes['train_params']['writer_freq'] == 0:
             torch.save(model.state_dict(), os.path.join(saved_path, 'net_epoch%d.pth' % (epoch + 1)))
 
-    return model, att_model, writer
+  return model, att_model, writer
 
 
   pass
@@ -127,6 +133,7 @@ def train(opt):
 if __name__ == '__main__':
   # load training configuration from yaml file
   opt = train_parser()
+  hypes = yaml_utils.load_yaml(opt.hype_yaml, opt)
   
   # Check gpu
   opt.use_gpu

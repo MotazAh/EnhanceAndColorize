@@ -1,0 +1,67 @@
+name: crack_dense_unet_121
+train_file:
+  - dataset/coco_val/train
+val_file:
+  - dataset/coco_val/val
+test_file:
+  - dataset/coco_val/val
+real_file:
+  - dataset/real_old_resize/
+train_params:
+  solver:
+    name: Adam
+    lr: 0.0001
+    params:
+      eps: 1e-10
+      weight_decay: 1e-4
+  # final output loss
+  loss:
+    ssim:
+      weight: 1.0
+      args: false
+    l1:
+      weight: 1.0
+      args: false
+    histogram:
+      weight: 0.1
+      args: false
+
+  batch_size: 2
+  epoches: 51
+  display_freq: 5
+  eval_freq: 1
+  writer_freq: 5
+  use_gpu: true
+  gpu_id: 0
+  ref_json: false # whether load reference image from json file
+arch:
+  backbone: dense121_unet_histogram_attention
+  args:
+    input_channel: 2
+    growthRate: 32
+    scale: 4
+    bilinear: true
+    drop_rate: 0.5
+    nDenseLayer:
+      - 8
+      - 12
+      - 6
+      - 4
+    pretrained: false
+# REMOVE IF NOT NEEDED:
+crack_arch:
+#   backbone: res_dense_network
+#   args: false
+  backbone: dense121_unet
+  args:
+    input_channel: 1
+    growthRate: 32
+    scale: 4
+    bilinear: true
+    drop_rate: 0.5
+    nDenseLayer:
+      - 8
+      - 12
+      - 6
+      - 4
+    pretrained: false
