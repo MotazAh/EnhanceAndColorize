@@ -17,7 +17,7 @@ from keras.models import Sequential
 from scipy import spatial
 from PIL import Image
 
-from helper.parser import refdata_parser
+from utils.parser import refdata_parser
 
 """
 # Load pre-trained VGG16 model

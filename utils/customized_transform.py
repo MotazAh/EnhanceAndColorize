@@ -9,39 +9,39 @@ import torch
 import imgaug.augmenters as iaa
 
 from skimage.color import rgb2lab, lab2rgb
-from utils.texture_libs import crack_generate, dust_generate
-from utils.damage_libs import damage_generate
+#from utils.texture_libs import crack_generate, dust_generate
+#from utils.damage_libs import damage_generate
 
 
-class CrackGenerator(object):
-    """
-    crack generation
-    """
+# class CrackGenerator(object):
+#     """
+#     crack generation
+#     """
 
-    def __call__(self, sample):
-        input_image, gt_image = sample['input_image'], sample['gt_image']
-        # crack generation
-        code = randint(1, 12)
-        processed_image, _ = crack_generate(cv2.cvtColor(input_image, cv2.COLOR_GRAY2BGR).copy(), code)
+#     def __call__(self, sample):
+#         input_image, gt_image = sample['input_image'], sample['gt_image']
+#         # crack generation
+#         code = randint(1, 12)
+#         processed_image, _ = crack_generate(cv2.cvtColor(input_image, cv2.COLOR_GRAY2BGR).copy(), code)
 
-        # dust generation
-        code = randint(1, 8)
-        processed_image = dust_generate(processed_image.copy(), code)
+#         # dust generation
+#         code = randint(1, 8)
+#         processed_image = dust_generate(processed_image.copy(), code)
 
-        processed_image = np.expand_dims(cv2.cvtColor(processed_image, cv2.COLOR_BGR2GRAY), -1)
-        sample.update({'input_image': processed_image})
-        return sample
+#         processed_image = np.expand_dims(cv2.cvtColor(processed_image, cv2.COLOR_BGR2GRAY), -1)
+#         sample.update({'input_image': processed_image})
+#         return sample
 
 
-class DamageGenerator(object):
-    """
-    damage generation
-    """
-    def __call__(self, sample):
-        input_image = sample['input_image']
-        processed_image = damage_generate(input_image.copy(), threash=20)
-        sample.update({'input_image': processed_image})
-        return sample
+# class DamageGenerator(object):
+#     """
+#     damage generation
+#     """
+#     def __call__(self, sample):
+#         input_image = sample['input_image']
+#         processed_image = damage_generate(input_image.copy(), threash=20)
+#         sample.update({'input_image': processed_image})
+#         return sample
 
 
 

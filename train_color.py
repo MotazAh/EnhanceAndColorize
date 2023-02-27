@@ -27,10 +27,11 @@ def train(opt, hypes):
   '''
   
   print('loading dataset')
+  # Real test is for testing real grayscale old images (Not available currently)
   loader_train, loader_val = helper.create_dataset(hypes,
                                                    train=True,
-                                                   real=opt.real_test,
-                                                   crack_dir=opt.crack_dir)
+                                                   real=False,
+                                                   crack_dir=False)
 
   base_resnet = resnet34(pretrained=True)
   att_model = AttentionExtractModule(BasicBlock, [3, 4, 6, 3])
@@ -133,7 +134,7 @@ def train(opt, hypes):
 if __name__ == '__main__':
   # load training configuration from yaml file
   opt = train_parser()
-  hypes = yaml_utils.load_yaml(opt.hype_yaml, opt)
+  hypes = yaml_utils.load_yaml(opt.hypes_yaml, opt)
   
   # Check gpu
   opt.use_gpu
@@ -143,4 +144,4 @@ if __name__ == '__main__':
     print("Not using gpu")
   
   print("Starting")
-  train(opt)
+  train(opt, hypes)

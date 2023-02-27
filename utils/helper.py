@@ -108,9 +108,7 @@ def create_dataset(hypes, train=True, gan=False, real=False, crack_dir=None):
                                         ref_json=hypes['train_params'][
                                             'ref_json'])
         loader_train = DataLoader(train_dataset,
-                                  batch_size=hypes['gan'][
-                                      'batch_size'] if gan else
-                                  hypes['train_params']['batch_size'],
+                                  batch_size=hypes['train_params']['batch_size'],
                                   shuffle=True,
                                   num_workers=4)
 

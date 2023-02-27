@@ -1,10 +1,10 @@
 name: crack_dense_unet_121
 train_file:
-  - dataset/coco_val/train
+  - dataset/val2017
 val_file:
-  - dataset/coco_val/val
+  - dataset/val2017
 test_file:
-  - dataset/coco_val/val
+  - dataset/val2017
 real_file:
   - dataset/real_old_resize/
 train_params:
