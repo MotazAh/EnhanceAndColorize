@@ -57,7 +57,7 @@ def get_image_similarity(img1, img2):
   return calculate_similarity(feature_v1, feature_v2)
 
 # Get top similar image for each image in a directory
-def find_all_top_images(img_dir_path):
+def find_all_top_images(img_dir_path, output_path):
   img_dir = os.listdir(img_dir_path)
   img_to_ref = []
 
@@ -65,24 +65,32 @@ def find_all_top_images(img_dir_path):
   for img_file_name in img_dir:
     if (counter + 1) % 100 == 0:
       print(counter + 1)
-    img_path = os.path.join(img_dir_path, img_file_name)
-    top_img_path = find_top_image(img_path, verbose=False)[0]
-    img_to_ref.append([img_path, top_img_path])
+    top_img_path = find_top_image(img_file_paths[counter], img_feature_vect=img_vects[counter],verbose=False)[0]
+    #print(img_file_paths[counter] + " for " + top_img_path)
+    img_to_ref.append([img_file_paths[counter], top_img_path])
     counter += 1
+
+  with open(output_path + "/.txt", 'w') as f:
+      for element in img_vect:
+        f.write(str(element) + '\n')
 
   return img_to_ref
   
 
 # Get top 2 similar images from a dataset folder
-def find_top_image(img_path, verbose=True):
+def find_top_image(img_path, img_feature_vect=False, verbose=True):
   if verbose:
     print("Img path = " + str(img_path))
-  img = Image.open(img_path).convert('L').resize(IMAGE_SHAPE)  #1
-  img = np.stack((img,)*3, axis=-1)                       #2
-  img = np.array(img)/255.0
+  
+  if type(img_feature_vect) == bool:
+    img = Image.open(img_path).convert('L').resize(IMAGE_SHAPE)  #1
+    img = np.stack((img,)*3, axis=-1)                       #2
+    img = np.array(img)/255.0
 
-  # Feature vector of image to be compared with dataset
-  img_vect = get_feature_vector(img)
+    # Feature vector of image to be compared with dataset
+    img_vect = get_feature_vector(img)
+  else:
+    img_vect = img_feature_vect
   
   top_score = 9999999999
   top2_score = 9999999999
@@ -126,6 +134,8 @@ def feature_reader(ref_feature_dir_path, ref_dir, feature_dir_path=False, img_di
   global img_file_paths
   img_ref_file_paths = []
   img_ref_vects = np.empty([len(ref_feature_dir) - 1, 1280,])
+  img_file_paths = []
+  img_vects = np.empty([len(ref_feature_dir) - 1, 1280,])
 
   counter = 0
   print("Reading features")
@@ -214,10 +224,9 @@ def run_operation(opt):
     print("Finding top 2 images")
     return find_top_image(opt.img_path, verbose=True)
   elif opt.op == "get_refs":
-    print(opt.feature_dir)
     feature_reader(opt.ref_feature_dir, opt.ref_dir, opt.feature_dir, opt.img_path)
     print("Finding top images")
-    return find_all_top_images(opt.img_path)
+    return find_all_top_images(opt.img_path, opt.write_to)
 
 if __name__ == '__main__':
   # load training configuration from yaml file
