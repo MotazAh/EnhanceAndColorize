@@ -70,9 +70,10 @@ def find_all_top_images(img_dir_path, output_path):
     img_to_ref.append([img_file_paths[counter], top_img_path])
     counter += 1
 
-  with open(output_path + "/.txt", 'w') as f:
-      for element in img_vect:
-        f.write(str(element) + '\n')
+  print("Writing map file to " + output_path)
+  with open(output_path, 'w') as f:
+      for pair in img_to_ref:
+        f.write(pair[0] + "," + pair[1] +"\n")
 
   return img_to_ref
   
