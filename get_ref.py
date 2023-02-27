@@ -116,14 +116,39 @@ def find_top_image(img_path, verbose=True):
   
   return [top_image_path, top2_image_path]
 
-def feature_reader(feature_dir_path, ref_dir):
-  feature_dir = os.listdir(feature_dir_path)
-  print("Feature File count = " + str(len(feature_dir) - 1))
+def feature_reader(ref_feature_dir_path, ref_dir, feature_dir_path=False, img_dir=False):
+  ref_feature_dir = os.listdir(ref_feature_dir_path)
+  print("Ref Feature File count = " + str(len(ref_feature_dir) - 1))
   
   global img_ref_vects
   global img_ref_file_paths
+  global img_vects
+  global img_file_paths
   img_ref_file_paths = []
-  img_ref_vects = np.empty([len(feature_dir) - 1, 1280,])
+  img_ref_vects = np.empty([len(ref_feature_dir) - 1, 1280,])
+
+  counter = 0
+  print("Reading features")
+  for file_name in ref_feature_dir:
+    if (counter + 1) % 100 == 0:
+      print(counter + 1)
+    # Gets image file name without .txt in the end
+    file_path = os.path.join(ref_feature_dir_path, file_name)
+    if file_path[-3:] != "txt":
+      if file_path[-6:] == "ignore":
+        print("Ignoring .gitignore")
+        continue
+      raise Exception("INVALID FILE IN FEATURES FOLDER: " + file_path)
+    img_ref_vects[counter] = parse_feature_file(file_path)
+    ref_img_path = os.path.join(ref_dir, file_name[:-4])
+    img_ref_file_paths.append(ref_img_path)
+    counter += 1
+  
+  if feature_dir_path == "":
+    return
+  
+  feature_dir = os.listdir(feature_dir_path)
+  print("Feature File count = " + str(len(feature_dir) - 1))
 
   counter = 0
   print("Reading features")
@@ -137,9 +162,9 @@ def feature_reader(feature_dir_path, ref_dir):
         print("Ignoring .gitignore")
         continue
       raise Exception("INVALID FILE IN FEATURES FOLDER: " + file_path)
-    img_ref_vects[counter] = parse_feature_file(file_path)
-    ref_img_path = os.path.join(ref_dir, file_name[:-4])
-    img_ref_file_paths.append(ref_img_path)
+    img_vects[counter] = parse_feature_file(file_path)
+    img_path = os.path.join(img_dir, file_name[:-4])
+    img_file_paths.append(img_path)
     counter += 1
 
 # Gets the vectory feature array from a text file
@@ -174,7 +199,7 @@ def get_feature_vectors(img_dir_path, output_path):
 
     img_vect = get_feature_vector(img)
 
-    with open('Dataset/feature_vectors/' + file_name + '.txt', 'w') as f:
+    with open(output_path + "/" + file_name + '.txt', 'w') as f:
       for element in img_vect:
         f.write(str(element) + '\n')
 
@@ -182,14 +207,15 @@ def run_operation(opt):
   opt = refdata_parser()
   if opt.op == "get_features":
     print("Getting Features")
-    get_feature_vectors(opt.data_dir)
+    get_feature_vectors(opt.data_dir, opt.feature_dir)
     print("Done")
   elif opt.op == "get_ref":
-    feature_reader(opt.feature_dir, opt.ref_dir)
+    feature_reader(opt.feature_dir, opt.ref_dir, False, False)
     print("Finding top 2 images")
     return find_top_image(opt.img_path, verbose=True)
   elif opt.op == "get_refs":
-    feature_reader(opt.feature_dir, opt.ref_dir)
+    print(opt.feature_dir)
+    feature_reader(opt.ref_feature_dir, opt.ref_dir, opt.feature_dir, opt.img_path)
     print("Finding top images")
     return find_all_top_images(opt.img_path)
 
