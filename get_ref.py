@@ -152,7 +152,8 @@ def parse_feature_file(file_path):
   return y
 
 # Get feature vectors for all images in an image dir
-def get_feature_vectors(img_dir_path):
+def get_feature_vectors(img_dir_path, output_path):
+  print("Processing feature vectors from: " + img_dir_path)
   img_dir = os.listdir(img_dir_path)
   counter = 0
 
