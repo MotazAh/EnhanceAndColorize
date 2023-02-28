@@ -30,7 +30,7 @@ class OldPhotoDataset(Dataset):
     Dataset should have a pair of data
     """
 
-    def __init__(self, map_dir, transform=transforms.Compose([ToTensor()])):
+    def __init__(self, map_dir, transform=transforms.Compose([transforms.ToTensor()])):
         """
         Args:
             :param root_dir: the path that contain all groundtruth and input images
@@ -91,7 +91,6 @@ class OldPhotoDataset(Dataset):
 
         if self.transform:
             data = self.transform(data)
-            
 
         data['image_name'] = gt_image_name
         return data

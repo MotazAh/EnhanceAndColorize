@@ -112,7 +112,7 @@ def create_dataset(hypes, train=True, real=False):
                                   num_workers=4)
 
         val_dataset = OldPhotoDataset(hypes['val_file'],
-                                      transform=transforms.Compose(transform_operation))
+                                      transform=transform_operation)
         loader_val = DataLoader(val_dataset, batch_size=1, shuffle=False)
 
         return loader_train, loader_val
@@ -313,9 +313,6 @@ def val_eval(model, att_model, loader_val, writer, opt, epoch):
         gt_l = gt_l.cuda()
         ref_gray = ref_gray.cuda()
         ref_ab = ref_ab.cuda()
-
-        if opt.crack_dir:
-            input_l = crack_net(input_l)['output']
 
         out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
         output = torch.clamp(out_dict['output'], -1, 1.)
