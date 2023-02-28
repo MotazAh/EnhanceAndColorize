@@ -6,6 +6,7 @@ import re
 import yaml
 import importlib
 import glob
+import cv2
 from datetime import datetime
 
 import torch.optim as optim
@@ -313,12 +314,24 @@ def val_eval(model, att_model, loader_val, writer, opt, epoch):
         gt_l = gt_l.cuda()
         ref_gray = ref_gray.cuda()
         ref_ab = ref_ab.cuda()
-
+        
         out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
         output = torch.clamp(out_dict['output'], -1, 1.)
         output = lab_to_rgb(input_l, output).cuda()
+        output_np = output.cpu().numpy()
+        output_np = output_np[0] * 255
+        output_np = output_np.transpose(1, 2, 0)
 
+        
+        
         target_val = lab_to_rgb(gt_l, gt_ab).cuda()
+        target_np = target_val.cpu().numpy()
+        target_np = target_np[0] * 255
+        target_np = target_np.transpose(1, 2, 0)
+
+        print("Writing output and target images")
+        cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
+        cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
         psnr += loss.batch_psnr(output, target_val, 1.)
         count += 1
