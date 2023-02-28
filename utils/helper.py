@@ -279,39 +279,7 @@ def log_images(input_l, input_batch, ref_ab, ref_gray, writer, model, epoch,
     return writer
 
 
-def log_images_crack(input_l, gt_l, writer, model, epoch):
-    """
-    write the images to tensorboard for visualization
-    :param input_data:  input image
-    :param target_data:  groundtruth image
-    :param writer:  SummaryWriter
-    :param model:  trained model
-    :param epoch:  current epoch
-    :return:
-    """
-    model.eval()
-    output_dict = model(input_l)
-    output = torch.clamp(output_dict['output'], -1., 1.)
-
-    output = (output + 1.) / 2.
-    gt_l = (gt_l + 1.) / 2.
-    input_l = (input_l + 1.) / 2.
-
-    im_target = utils.make_grid(gt_l.data, nrow=8, normalize=True,
-                                scale_each=True)
-    im_restore = utils.make_grid(output.data, nrow=8, normalize=True,
-                                 scale_each=True)
-    im_input = utils.make_grid(input_l.data, nrow=8, normalize=True,
-                               scale_each=True)
-
-    writer.add_image('groundtruth image', im_target, epoch + 1)
-    writer.add_image('input image', im_input, epoch + 1)
-    writer.add_image('restored image', im_restore, epoch + 1)
-
-    return writer
-
-
-def val_eval(model, att_model, loader_val, writer, opt, epoch, crack_net):
+def val_eval(model, att_model, loader_val, writer, opt, epoch):
     """
     evaluate on validation dataset
     :param epoch:  current training epoch
@@ -356,53 +324,6 @@ def val_eval(model, att_model, loader_val, writer, opt, epoch, crack_net):
         target_val = lab_to_rgb(gt_l, gt_ab).cuda()
 
         psnr += loss.batch_psnr(output, target_val, 1.)
-        count += 1
-
-    print('++++++++++++++++++++++++++++++++++++++++++++')
-    print('At current epoch %d, the psnr on validation dataset is %f' % (
-    epoch, psnr / count))
-    writer.add_scalar('PSNR on Val', psnr, epoch)
-
-    return writer
-
-
-def val_eval_crack(model, loader_val, writer, epoch):
-    """
-    evaluate on validation dataset
-    :param epoch:  current training epoch
-    :param model:  trained model
-    :param loader_val:  pytorch data loader for validaion dataset
-    :param writer:  summary writer
-    :param hypes:  train config yaml file
-    :return:
-    """
-    model.eval()
-    count = 0
-    psnr = 0
-    for j, batch_data in enumerate(loader_val):
-        input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab = batch_data[
-                                                                  'input_image'], \
-                                                              batch_data[
-                                                                  'input_L'], \
-                                                              batch_data[
-                                                                  'gt_ab'], \
-                                                              batch_data[
-                                                                  'gt_L'], \
-                                                              batch_data[
-                                                                  'ref_gray'], \
-                                                              batch_data[
-                                                                  'ref_ab']
-
-        input_l = input_l.cuda()
-        gt_l = gt_l.cuda()
-
-        out_dict = model(input_l)
-        output = torch.clamp(out_dict['output'], -1, 1.)
-
-        output = (output + 1.) / 2.
-        gt_l = (gt_l + 1.) / 2.
-
-        psnr += loss.batch_psnr(output, gt_l, 1.)
         count += 1
 
     print('++++++++++++++++++++++++++++++++++++++++++++')

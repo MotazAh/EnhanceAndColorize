@@ -1,6 +1,5 @@
 import os
 
-import get_ref
 from utils.parser import train_parser
 
 import torch
@@ -119,7 +118,8 @@ def train(opt, hypes):
             step += 1
 
         # log images
-        writer = helper.log_images(input_l, input_batch, ref_ab, ref_gray, writer, model, epoch, att_model, use_gpu)
+
+        writer = helper.log_images(input_l, input_batch, ref_ab, ref_gray, writer, model, epoch, att_model)
 
         # evaluate model on validation dataset
         if epoch % hypes['train_params']['eval_freq'] == 0:

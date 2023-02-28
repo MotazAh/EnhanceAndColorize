@@ -39,6 +39,7 @@ class OldPhotoDataset(Dataset):
         """
         
         self.map_dir = map_dir
+        print("Parsing " + self.map_dir)
         img_to_ref_pairs = parse_map_file(self.map_dir)
         self.gt_images = []
         self.ref_images = []
@@ -88,10 +89,9 @@ class OldPhotoDataset(Dataset):
 
             data.update({'ref_image': ref_image})"""
 
-
-
         if self.transform:
             data = self.transform(data)
+            
 
         data['image_name'] = gt_image_name
         return data

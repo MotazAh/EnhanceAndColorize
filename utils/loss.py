@@ -295,31 +295,6 @@ def loss_sum(hypes, creterion, predict_dict, target_batch, ref_batch=None):
     return final_loss
 
 
-def loss_sum_gan(hypes, creterion, score, real, gen):
-    """
-    get gan loss
-    :param hypes:
-    :param creterion:
-    :param score:
-    :param real:
-    :param gen:
-    :return:
-    """
-    final_loss = None
-    loss_param = hypes['gan']['loss']
-    for name, loss_func in creterion.items():
-        if name not in loss_param:
-            continue
-        current_loss = loss_func(score, real, gen) * \
-                       (loss_param[name]['gen_weight'] if gen else loss_param[name]['dis_weight'])
-        if not final_loss:
-            final_loss = current_loss
-        else:
-            final_loss += current_loss
-
-    return final_loss
-
-
 def batch_psnr(img, imclean, data_range):
     """
     Compute psnr of batches
