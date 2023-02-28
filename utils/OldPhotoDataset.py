@@ -75,8 +75,8 @@ class OldPhotoDataset(Dataset):
         input_image = np.expand_dims(cv2.cvtColor(gt_image, cv2.COLOR_BGR2GRAY), -1)
 
         data = {'input_image': input_image, 'gt_image': gt_image}
-        ref_image = cv2.cvtColor(cv2.imread(self.ref_images[idx]), cv2.COLOR_BGR2RGB)
-        data.update({"ref_image": ref_image})
+        #ref_image = cv2.cvtColor(cv2.imread(self.ref_images[idx]), cv2.COLOR_BGR2RGB)
+        #data.update({"ref_image": ref_image})
         """
         if self.ref_json:
             gt_json_name = self.ref_json_files[idx]

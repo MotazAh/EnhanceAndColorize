@@ -101,8 +101,7 @@ def create_dataset(hypes, train=True, real=False):
 
     if train:
         # if we only train the color restoration part
-        transform_operation = transforms.Compose([RandomCrop(256),
-                                                  TolABTensor()])
+        transform_operation = transforms.Compose([RandomCrop(256), TolABTensor()])
 
         train_dataset = OldPhotoDataset(hypes['train_file'],
                                         transform=transform_operation
@@ -113,19 +112,14 @@ def create_dataset(hypes, train=True, real=False):
                                   num_workers=4)
 
         val_dataset = OldPhotoDataset(hypes['val_file'],
-                                      transform=transform_operation)
+                                      transform=transforms.Compose([Crop(256), TolABTensor()]))
         loader_val = DataLoader(val_dataset, batch_size=1, shuffle=False)
 
         return loader_train, loader_val
 
     else:
-        if not crack_dir:
-            transform_operation = transforms.Compose(TolABTensor())
-        else:
-            transform_operation = transforms.Compose([
-                RandomBlur(),
-                CrackGenerator(),
-                TolABTensor()])
+        transform_operation = transforms.Compose(TolABTensor())
+
         test_dataset = OldPhotoDataset(root_dir=hypes['test_file'],
                                        transform=transform_operation)
         return test_dataset
@@ -318,23 +312,22 @@ def val_eval(model, att_model, loader_val, writer, opt, epoch):
         out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
         output = torch.clamp(out_dict['output'], -1, 1.)
         output = lab_to_rgb(input_l, output).cuda()
-        output_np = output.cpu().numpy()
-        output_np = output_np[0] * 255
-        output_np = output_np.transpose(1, 2, 0)
-
-        
-        
         target_val = lab_to_rgb(gt_l, gt_ab).cuda()
-        target_np = target_val.cpu().numpy()
-        target_np = target_np[0] * 255
-        target_np = target_np.transpose(1, 2, 0)
-
-        print("Writing output and target images")
-        cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
-        cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
         psnr += loss.batch_psnr(output, target_val, 1.)
         count += 1
+
+    output_np = output.cpu().numpy()
+    output_np = output_np[0] * 255
+    output_np = output_np.transpose(1, 2, 0)
+
+    target_np = target_val.cpu().numpy()
+    target_np = target_np[0] * 255
+    target_np = target_np.transpose(1, 2, 0)
+
+    print("Writing output and target images")
+    cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
     print('++++++++++++++++++++++++++++++++++++++++++++')
     print('At current epoch %d, the psnr on validation dataset is %f' % (
