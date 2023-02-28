@@ -485,14 +485,17 @@ class Dense121UnetHistogramAttention(nn.Module):
         results = {'output': output}
         return results
 
-
+# model(input_l, input_batch, ref_ab, ref_gray, att_model)
+#forward(self, x, x_gray, ref, ref_gray, att_model):
 if __name__ == '__main__':
     # unit test
     data = torch.randn((2, 1, 256, 256))
     gt = torch.randn((2, 3, 256, 256))
+    ref = torch.randn((2, 2, 256, 256))
     gt_gray = torch.randn((2, 1, 256, 256))
 
     data = data.cuda()
+    ref = ref.cuda()
     gt = gt.cuda()
     gt_gray = gt_gray.cuda()
 
@@ -506,4 +509,4 @@ if __name__ == '__main__':
             'nDenseLayer': [8, 12, 6, 4], 'pretrained': True}
     model = Dense121UnetHistogramAttention(args)
     model.cuda()
-    output = model(data, gt, gt_gray, att_model)
+    output = model(data, gt_gray, ref, gt_gray,att_model)
