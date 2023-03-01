@@ -119,15 +119,16 @@ def train(opt, hypes):
 
         # log images
 
-        writer = helper.log_images(input_l, input_batch, ref_ab, ref_gray, writer, model, epoch, att_model)
+        writer = helper.log_images(input_l, input_batch, ref_ab, ref_gray, writer, model, epoch, att_model, use_gpu)
         
         # evaluate model on validation dataset
         if epoch % hypes['train_params']['eval_freq'] == 0:
             print("Evaluating model on validation set")
-            writer = helper.val_eval(model, att_model, loader_val, writer, opt, epoch)
-
-        if epoch % hypes['train_params']['writer_freq'] == 0:
-            torch.save(model.state_dict(), os.path.join(saved_path, 'net_epoch%d.pth' % (epoch + 1)))
+            writer = helper.val_eval(model, att_model, loader_val, writer, opt, epoch, use_gpu)
+        
+        # Save model
+        #if epoch % hypes['train_params']['writer_freq'] == 0:
+        #    torch.save(model.state_dict(), os.path.join(saved_path, 'net_epoch%d.pth' % (epoch + 1)))
 
   return model, att_model, writer
 

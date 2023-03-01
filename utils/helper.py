@@ -34,12 +34,12 @@ def setup_train(hypes):
     current_path = os.path.dirname(__file__)
     current_path = os.path.join(current_path, '../logs')
     full_path = os.path.join(current_path, folder_name)
-    # if not os.path.exists(full_path):
-    #     os.makedirs(full_path)
-    #     # save the yaml file
-    #     save_name = os.path.join(full_path, 'config.yaml')
-    #     with open(save_name, 'w') as outfile:
-    #         yaml.dump(hypes, outfile)
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+        # save the yaml file
+        save_name = os.path.join(full_path, 'config.yaml')
+        with open(save_name, 'w') as outfile:
+          yaml.dump(hypes, outfile)
 
     return full_path
 
@@ -244,7 +244,7 @@ def load_saved_model(saved_path, model):
 
 
 def log_images(input_l, input_batch, ref_ab, ref_gray, writer, model, epoch,
-               att_model):
+               att_model, use_gpu):
     """
     write the images to tensorboard for visualization
     :param input_data:  input image
@@ -258,7 +258,10 @@ def log_images(input_l, input_batch, ref_ab, ref_gray, writer, model, epoch,
     output_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
     output = torch.clamp(output_dict['output'], -1., 1.)
 
-    output = lab_to_rgb(input_l, output).cuda()
+    if use_gpu:
+      output = lab_to_rgb(input_l, output).cuda()
+    else:
+      output = lab_to_rgb(input_l, output)
 
     im_input = utils.make_grid(input_batch.data, nrow=8, normalize=True,
                                scale_each=True)
@@ -274,7 +277,7 @@ def log_images(input_l, input_batch, ref_ab, ref_gray, writer, model, epoch,
     return writer
 
 
-def val_eval(model, att_model, loader_val, writer, opt, epoch):
+def val_eval(model, att_model, loader_val, writer, opt, epoch, use_gpu):
     """
     evaluate on validation dataset
     :param epoch:  current training epoch
@@ -301,27 +304,44 @@ def val_eval(model, att_model, loader_val, writer, opt, epoch):
                                                                   'ref_gray'], \
                                                               batch_data[
                                                                   'ref_ab']
-
-        input_batch = input_batch.cuda()
-        input_l = input_l.cuda()
-        gt_ab = gt_ab.cuda()
-        gt_l = gt_l.cuda()
-        ref_gray = ref_gray.cuda()
-        ref_ab = ref_ab.cuda()
+        if use_gpu:
+          input_batch = input_batch.cuda()
+          input_l = input_l.cuda()
+          gt_ab = gt_ab.cuda()
+          gt_l = gt_l.cuda()
+          ref_gray = ref_gray.cuda()
+          ref_ab = ref_ab.cuda()
         
-        out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
-        output = torch.clamp(out_dict['output'], -1, 1.)
-        output = lab_to_rgb(input_l, output).cuda()
-        target_val = lab_to_rgb(gt_l, gt_ab).cuda()
+          out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+          output = torch.clamp(out_dict['output'], -1, 1.)
+          output = lab_to_rgb(input_l, output).cuda()
+          target_val = lab_to_rgb(gt_l, gt_ab).cuda()
+
+          output_np = output.cpu().numpy()
+          target_np = target_val.cpu().numpy()
+        else:
+          input_batch = input_batch
+          input_l = input_l
+          gt_ab = gt_ab
+          gt_l = gt_l
+          ref_gray = ref_gray
+          ref_ab = ref_ab
+        
+          out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+          output = torch.clamp(out_dict['output'], -1, 1.)
+          output = lab_to_rgb(input_l, output)
+          target_val = lab_to_rgb(gt_l, gt_ab)
+
+          output_np = output.numpy()
+          target_np = target_val.numpy()
 
         psnr += loss.batch_psnr(output, target_val, 1.)
         count += 1
 
-    output_np = output.cpu().numpy()
+    
     output_np = output_np[0] * 255
     output_np = output_np.transpose(1, 2, 0)
 
-    target_np = target_val.cpu().numpy()
     target_np = target_np[0] * 255
     target_np = target_np.transpose(1, 2, 0)
 
