@@ -34,12 +34,12 @@ def setup_train(hypes):
     current_path = os.path.dirname(__file__)
     current_path = os.path.join(current_path, '../logs')
     full_path = os.path.join(current_path, folder_name)
-    if not os.path.exists(full_path):
-        os.makedirs(full_path)
-        # save the yaml file
-        save_name = os.path.join(full_path, 'config.yaml')
-        with open(save_name, 'w') as outfile:
-            yaml.dump(hypes, outfile)
+    # if not os.path.exists(full_path):
+    #     os.makedirs(full_path)
+    #     # save the yaml file
+    #     save_name = os.path.join(full_path, 'config.yaml')
+    #     with open(save_name, 'w') as outfile:
+    #         yaml.dump(hypes, outfile)
 
     return full_path
 
