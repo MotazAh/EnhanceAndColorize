@@ -23,3 +23,9 @@ def train_parser():
     
     opt = parser.parse_args()
     return opt
+
+def test_parser():
+  parser = argparse.ArgumentParser(description="synthetic data generation")
+  parser.add_argument("--hypes_yaml", type=str, required=True, help='data generation yaml file needed ')
+  parser.add_argument("--img_path", type=str, required=True)
+  parser.add_argument("--ref_path", type=str, required=True)
