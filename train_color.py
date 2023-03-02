@@ -15,10 +15,6 @@ from models.networks import AttentionExtractModule
 from hypes_yaml import yaml_utils
 
 def train(opt, hypes):
-  ''' TODOs: 
-    -ADD LOADING MODEL MECHANIC
-    -ADD TRAINING
-  '''
   
   print('loading dataset')
   # Real test is for testing real grayscale old images (Not available currently)
@@ -48,6 +44,7 @@ def train(opt, hypes):
   scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 
    # load saved model for continue training or train from scratch
+  print(opt.model_dir)
   if opt.model_dir:
     print("Loading previous model")
     saved_path = opt.model_dir
@@ -140,6 +137,7 @@ if __name__ == '__main__':
   opt = train_parser()
   hypes = yaml_utils.load_yaml(opt.hypes_yaml, opt)
   opt.use_gpu = hypes["train_params"]["use_gpu"]
+  opt.model_dir = hypes["model_dir"]
   # Check gpu
   #opt.use_gpu
   if opt.use_gpu:
