@@ -3,7 +3,6 @@ train_file: Dataset/img_to_ref_maps/train_map.txt
 val_file: Dataset/img_to_ref_maps/val_map.txt
 test_file: Dataset/img_to_ref_maps/test_map.txt
 real_file: Dataset/img_to_ref_maps/train_map.txt
-model_dir: saved_model
 train_params:
   solver:
     name: Adam
@@ -28,7 +27,7 @@ train_params:
   display_freq: 5
   eval_freq: 1
   writer_freq: 5
-  use_gpu: false
+  use_gpu: true
   gpu_id: 0
   ref_json: false # whether load reference image from json file
 arch:

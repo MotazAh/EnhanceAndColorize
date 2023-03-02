@@ -44,7 +44,7 @@ def train(opt, hypes):
   scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 
    # load saved model for continue training or train from scratch
-  print(opt.model_dir)
+  print("Save path: " + opt.model_dir)
   if opt.model_dir:
     print("Loading previous model")
     saved_path = opt.model_dir
@@ -123,9 +123,9 @@ def train(opt, hypes):
             print("Evaluating model on validation set")
             writer = helper.val_eval(model, att_model, loader_val, writer, opt, epoch, use_gpu)
         
-        # Save model
-        #if epoch % hypes['train_params']['writer_freq'] == 0:
-        #    torch.save(model.state_dict(), os.path.join(saved_path, 'net_epoch%d.pth' % (epoch + 1)))
+        #Save model
+        if epoch % hypes['train_params']['writer_freq'] == 0:
+            torch.save(model.state_dict(), os.path.join(saved_path, 'net_epoch%d.pth' % (epoch + 1)))
 
   return model, att_model, writer
 
@@ -137,7 +137,6 @@ if __name__ == '__main__':
   opt = train_parser()
   hypes = yaml_utils.load_yaml(opt.hypes_yaml, opt)
   opt.use_gpu = hypes["train_params"]["use_gpu"]
-  opt.model_dir = hypes["model_dir"]
   # Check gpu
   #opt.use_gpu
   if opt.use_gpu:
