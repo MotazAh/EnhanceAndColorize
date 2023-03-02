@@ -25,16 +25,12 @@ def test(opt, hypes):
   
   print('loading dataset')
   # Real test is for testing real grayscale old images (Not available currently)
-  loader_test = helper.create_dataset(hypes,
-                                      train=False,
-                                      real=False)
-  
+  transform_operation = transforms.Compose([Crop(), TolABTensor()])
 
-  transform_operation = transforms.Compose(TolABTensor())
-
-  test_dataset = OldPhotoDataset(root_dir=hypes['test_file'],
+  test_dataset = DatasetMaker(opt.img_path, opt.ref_path,
                                   transform=transform_operation)
-  return test_dataset
+
+  loader_test = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
   print("Setting resnet34 and attention model")
   base_resnet = resnet34(pretrained=True)
@@ -55,59 +51,55 @@ def test(opt, hypes):
   if opt.model_dir:
     print("Loading previous model")
     saved_path = opt.model_dir
-    init_epoch, model = helper.load_saved_model(saved_path, model)
+    init_epoch, model = helper.load_saved_model(saved_path, model, use_gpu)
   
-
   print('Testing Start')
-  
-  if use_gpu:
-    input_batch = input_batch.cuda()
-    input_l = input_l.cuda()
-    gt_ab = gt_ab.cuda()
-    gt_l = gt_l.cuda()
-    ref_gray = ref_gray.cuda()
-    ref_ab = ref_ab.cuda()
 
-    for i, batch_data in enumerate(loader_test):
-      # clean up grad first
-      input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab = batch_data['input_image'], \
-                                                              batch_data['input_L'], \
-                                                              batch_data['gt_ab'], batch_data['gt_L'], \
-                                                              batch_data['ref_gray'], batch_data['ref_ab']
-      # model inference and loss cal
-      out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
-      if use_gpu:
-        input_batch = input_batch.cuda()
-        input_l = input_l.cuda()
-        gt_ab = gt_ab.cuda()
-        gt_l = gt_l.cuda()
-        ref_gray = ref_gray.cuda()
-        ref_ab = ref_ab.cuda()
-      
-        output = torch.clamp(out_dict['output'], -1, 1.)
-        output = lab_to_rgb(input_l, output).cuda()
-        target_val = lab_to_rgb(gt_l, gt_ab).cuda()
+  for i, batch_data in enumerate(loader_test):
+    # clean up grad first
+    input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab = batch_data['input_image'], \
+                                                            batch_data['input_L'], \
+                                                            batch_data['gt_ab'], batch_data['gt_L'], \
+                                                            batch_data['ref_gray'], batch_data['ref_ab']
+    # model inference and loss cal
+    out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+    if use_gpu:
+      input_batch = input_batch.cuda()
+      input_l = input_l.cuda()
+      gt_ab = gt_ab.cuda()
+      gt_l = gt_l.cuda()
+      ref_gray = ref_gray.cuda()
+      ref_ab = ref_ab.cuda()
+    
+      output = torch.clamp(out_dict['output'], -1, 1.)
+      output = lab_to_rgb(input_l, output).cuda()
+      target_val = lab_to_rgb(gt_l, gt_ab).cuda()
 
-        output_np = output.cpu().numpy()
-        target_np = target_val.cpu().numpy()
-      else:
-        input_batch = input_batch
-        input_l = input_l
-        gt_ab = gt_ab
-        gt_l = gt_l
-        ref_gray = ref_gray
-        ref_ab = ref_ab
-      
-        output = torch.clamp(out_dict['output'], -1, 1.)
-        output = lab_to_rgb(input_l, output)
-        target_val = lab_to_rgb(gt_l, gt_ab)
+      output_np = output.cpu().numpy()
+      target_np = target_val.cpu().numpy()
+    else:
+      input_batch = input_batch
+      input_l = input_l
+      gt_ab = gt_ab
+      gt_l = gt_l
+      ref_gray = ref_gray
+      ref_ab = ref_ab
+    
+      output = torch.clamp(out_dict['output'], -1, 1.)
+      output = lab_to_rgb(input_l, output)
+      target_val = lab_to_rgb(gt_l, gt_ab)
 
-        output_np = output.numpy()
-        target_np = target_val.numpy()
+      output_np = output.numpy()
+      target_np = target_val.numpy()
 
-      print("Writing output and target images")
-      cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
-      cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
+    output_np = output_np[0] * 255
+    output_np = output_np.transpose(1, 2, 0)
+
+    target_np = target_np[0] * 255
+    target_np = target_np.transpose(1, 2, 0)
+    print("Writing output and target images")
+    cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
 class DatasetMaker(Dataset):
     """

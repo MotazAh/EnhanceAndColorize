@@ -472,8 +472,7 @@ class Dense121UnetHistogramAttention(nn.Module):
         down4 = self.features.transition4(feature4) # Downsample with transition
         down4 = torch.cat([down4, sim_feature[3][1], sim_feature[3][0]], 1)
         down4 = self.hf_4(down4)
-
-        # up
+        # up 
         up = self.up0(down4, feature4)
         up = self.up1(up, feature3)
         up = self.up2(up, feature2)

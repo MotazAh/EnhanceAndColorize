@@ -48,7 +48,7 @@ def train(opt, hypes):
   if opt.model_dir:
     print("Loading previous model")
     saved_path = opt.model_dir
-    init_epoch, model = helper.load_saved_model(saved_path, model)
+    init_epoch, model = helper.load_saved_model(saved_path, model, use_gpu)
   else:
     print("Initializing save model folder")
     # setup saved model folder

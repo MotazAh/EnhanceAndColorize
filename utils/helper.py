@@ -3,6 +3,7 @@ Helper functions for training and testing
 """
 import os
 import re
+from torch.serialization import MAP_LOCATION
 import yaml
 import importlib
 import glob
@@ -211,7 +212,7 @@ def setup_optimizer(method, model):
         return optimizer_method(model.parameters(), lr=method_dict['lr'])
 
 
-def load_saved_model(saved_path, model):
+def load_saved_model(saved_path, model, use_gpu):
     """
     Load saved model if exiseted
     :param saved_path:  model saved path, str
@@ -236,9 +237,10 @@ def load_saved_model(saved_path, model):
     initial_epoch = findLastCheckpoint(saved_path)
     if initial_epoch > 0:
         print('resuming by loading epoch %d' % initial_epoch)
-        model.load_state_dict(torch.load(os.path.join(saved_path,
-                                                      'net_epoch%d.pth' %
-                                                      initial_epoch)))
+        if use_gpu:
+          model.load_state_dict(torch.load(os.path.join(saved_path, 'net_epoch%d.pth' % initial_epoch)))
+        else:
+          model.load_state_dict(torch.load(os.path.join(saved_path, 'net_epoch%d.pth' % initial_epoch), map_location=torch.device('cpu')))
 
     return initial_epoch, model
 
