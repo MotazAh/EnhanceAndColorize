@@ -62,7 +62,7 @@ def test(opt, hypes):
                                                             batch_data['gt_ab'], batch_data['gt_L'], \
                                                             batch_data['ref_gray'], batch_data['ref_ab']
     # model inference and loss cal
-    out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+    
     if use_gpu:
       input_batch = input_batch.cuda()
       input_l = input_l.cuda()
@@ -70,7 +70,8 @@ def test(opt, hypes):
       gt_l = gt_l.cuda()
       ref_gray = ref_gray.cuda()
       ref_ab = ref_ab.cuda()
-    
+      out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+
       output = torch.clamp(out_dict['output'], -1, 1.)
       output = lab_to_rgb(input_l, output).cuda()
       target_val = lab_to_rgb(gt_l, gt_ab).cuda()
@@ -84,7 +85,8 @@ def test(opt, hypes):
       gt_l = gt_l
       ref_gray = ref_gray
       ref_ab = ref_ab
-    
+      out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+
       output = torch.clamp(out_dict['output'], -1, 1.)
       output = lab_to_rgb(input_l, output)
       target_val = lab_to_rgb(gt_l, gt_ab)
