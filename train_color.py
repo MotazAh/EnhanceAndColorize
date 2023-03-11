@@ -85,10 +85,24 @@ def train(opt, hypes):
                 gt_l = gt_l.cuda()
                 ref_gray = ref_gray.cuda()
                 ref_ab = ref_ab.cuda()
-
+            
+            if torch.isnan(input_batch).any():
+              print("Found nan in input_batch")
+            if torch.isnan(input_l).any():
+              print("Found nan in input_l")
+            if torch.isnan(gt_ab).any():
+              print("Found nan in gt_ab")
+            if torch.isnan(gt_l).any():
+              print("Found nan in gt_l")
+            if torch.isnan(ref_gray).any():
+              print("Found nan in ref_gray")
+            if torch.isnan(ref_ab).any():
+              print("Found nan in ref_ab")
+            
             # model inference and loss cal
             out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
             final_loss = loss.loss_sum(hypes, criterion, out_dict, gt_ab)
+            print(final_loss)
 
             # back-propagation
             final_loss.backward()
