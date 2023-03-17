@@ -104,9 +104,10 @@ def train(opt, hypes):
             final_loss = loss.loss_sum(hypes, criterion, out_dict, gt_ab)
             print(final_loss)
 
-            # back-propagation
-            final_loss.backward()
-            optimizer.step()
+            if (not torch.isnan(final_loss).any()):
+              # back-propagation
+              final_loss.backward()
+              optimizer.step()
 
             # plot and print training info
             if step % hypes['train_params']['display_freq'] == 0:

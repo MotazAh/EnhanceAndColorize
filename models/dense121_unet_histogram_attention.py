@@ -427,9 +427,26 @@ class Dense121UnetHistogramAttention(nn.Module):
         :param gt: gt_gray
         :param att_model: pretrained resent34
         """
+        issue_found = False
+
+        if (torch.isnan(x).any() and (not issue_found)):
+          print("Issue at x input")
+          issue_found = True
+        
         # shallow conv (First Convolution)
-        feature0 = self.features.relu0(self.features.conv0_0(x))
+        featureA = self.features.conv0_0(x)
+        if (torch.isnan(featureA.mean()) and (not issue_found)):
+          print("Issue after featureA")
+          print(self.layer[0].weight)
+          issue_found = True
+        feature0 = self.features.relu0(featureA)
+        if (torch.isnan(feature0.mean()) and (not issue_found)):
+          print("Issue after feature0")
+          issue_found = True
         down0 = self.features.pool0(feature0) # Downsample by pooling
+        if (torch.isnan(down0.mean()) and (not issue_found)):
+          print("Issue after down0")
+          issue_found = True
 
         # normalize data for attention mask
         normalized_ref = self.normalize_data(ref_gray.repeat(1, 3, 1, 1))
@@ -455,23 +472,36 @@ class Dense121UnetHistogramAttention(nn.Module):
         down1 = torch.cat([down1, sim_feature[0][1], sim_feature[0][0]], 1) # Concatenate similarity map with output of previous layer
         down1 = self.hf_1(down1) # Fusion Layer (Fuse similarity map with output of previous layer)
 
+        if (torch.isnan(down1.mean()) and (not issue_found)):
+          print("Issue after down1")
+          issue_found = True
+
         # dense block 2
         feature2 = self.features.denseblock2(down1)
         down2 = self.features.transition2(feature2) # Downsample with transition
         down2 = torch.cat([down2, sim_feature[1][1], sim_feature[1][0]], 1)
         down2 = self.hf_2(down2)
+        if (torch.isnan(down2.mean()) and (not issue_found)):
+          print("Issue after down2")
+          issue_found = True
 
         # dense block3
         feature3 = self.features.denseblock3(down2)
         down3 = self.features.transition3(feature3) # Downsample with transition
         down3 = torch.cat([down3, sim_feature[2][1], sim_feature[2][0]], 1)
         down3 = self.hf_3(down3)
+        if (torch.isnan(down3.mean()) and (not issue_found)):
+          print("Issue after down3")
+          issue_found = True
 
         # dense block 4
         feature4 = self.features.denseblock4(down3)
         down4 = self.features.transition4(feature4) # Downsample with transition
         down4 = torch.cat([down4, sim_feature[3][1], sim_feature[3][0]], 1)
         down4 = self.hf_4(down4)
+        if (torch.isnan(down4.mean()) and (not issue_found)):
+          print("Issue after down4")
+          issue_found = True
         # up 
         up = self.up0(down4, feature4)
         up = self.up1(up, feature3)
@@ -479,8 +509,15 @@ class Dense121UnetHistogramAttention(nn.Module):
         up = self.up3(up, feature1)
         up = self.up4(up, feature0)
 
+        if (torch.isnan(up.mean()) and (not issue_found)):
+          print("Issue after up")
+          issue_found = True
+
         # Final Convolution
         output = self.conv_final(up)
+        if (torch.isnan(output.mean()) and (not issue_found)):
+          print("Issue after final conv")
+          issue_found = True
         results = {'output': output}
         return results
 
