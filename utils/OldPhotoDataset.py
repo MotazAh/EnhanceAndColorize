@@ -46,7 +46,7 @@ class OldPhotoDataset(Dataset):
         
         for pair in img_to_ref_pairs:
           self.gt_images.append(pair[0])
-          self.ref_images.append(pair[1])
+          #self.ref_images.append(pair[1])
         """
         for folder in self.root_dir:
             gt_images = sorted([os.path.join(folder, x)
