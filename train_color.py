@@ -101,7 +101,8 @@ def train(opt, hypes):
               print("Found nan in ref_ab")
             
             # model inference and loss cal
-            out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+            #out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+            out_dict = model(input_l, input_batch, gt_ab, ref_gray, att_model)
             final_loss = loss.loss_sum(hypes, criterion, out_dict, gt_ab)
             print(final_loss)
 
@@ -129,14 +130,17 @@ def train(opt, hypes):
                   output_np = out_train[0].numpy()
                   target_np = target_train[0].numpy()
                 
-
-                #output_np = output_np[0] * 255
-                output_np = output_np.transpose(1, 2, 0)
-
-                #target_np = target_np[0] * 255
-                target_np = target_np.transpose(1, 2, 0)
+                print(out_train.size())
 
                 print(target_np.shape)
+
+                output_np = output_np * 255
+                output_np = output_np.transpose(1, 2, 0)
+
+                target_np = target_np * 255
+                target_np = target_np.transpose(1, 2, 0)
+
+                
 
                 print("Writing output and target images")
                 cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))

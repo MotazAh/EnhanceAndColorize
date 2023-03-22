@@ -518,7 +518,7 @@ class Dense121UnetHistogramAttention(nn.Module):
         if (torch.isnan(output.mean()) and (not issue_found)):
           print("Issue after final conv")
           issue_found = True
-        #output = torch.tensor(ref, requires_grad=True)
+        output = torch.tensor(ref, requires_grad=True)
         results = {'output': output}
         return results
 
