@@ -134,7 +134,10 @@ class RandomCrop(object):
 
         # used for training as reference image
         ref_image = gt_image.copy() if 'ref_image' not in sample else sample['ref_image']
-        ref_image = cv2.resize(ref_image, (gt_image.shape[1], gt_image.shape[0]))
+        if h < new_h:
+          ref_image = cv2.resize(ref_image, None, fx=new_h / h, fy=new_h / h)
+        if w < new_w:
+          ref_image = cv2.resize(ref_image, None, fx=new_w / w, fy=new_w / w)
 
         top = 0 if input_image.shape[0] == new_h else np.random.randint(0, input_image.shape[0] - new_h)
         left = 0 if input_image.shape[1] == new_w else np.random.randint(0, input_image.shape[1] - new_w)
