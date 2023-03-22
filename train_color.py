@@ -77,8 +77,13 @@ def train(opt, hypes):
                                                                    batch_data['input_L'], \
                                                                    batch_data['gt_ab'], batch_data['gt_L'], \
                                                                    batch_data['ref_gray'], batch_data['ref_ab']
-            
-            
+            """
+            print("ref_ab")
+            print(ref_ab[0])
+            print("gt_ab")
+            print(gt_ab[0])
+            print("\n")"""
+
             if use_gpu:
                 input_batch = input_batch.cuda()
                 input_l = input_l.cuda()
@@ -105,6 +110,8 @@ def train(opt, hypes):
             final_loss = loss.loss_sum(hypes, criterion, out_dict, gt_ab)
             print(final_loss)
 
+            
+
             if (not torch.isnan(final_loss).any()):
               # back-propagation
               final_loss.backward()
@@ -113,6 +120,7 @@ def train(opt, hypes):
             # plot and print training info
             if step % hypes['train_params']['display_freq'] == 0:
                 model.eval()
+
                 out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
                 out_train = torch.clamp(out_dict['output'], -1., 1.)
 
