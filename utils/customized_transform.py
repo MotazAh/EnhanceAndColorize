@@ -79,11 +79,11 @@ class Crop(object):
 
     # used for training as reference image
     ref_image = gt_image.copy() if 'ref_image' not in sample else sample['ref_image']
-    ref_image = cv2.resize(ref_image, (gt_image.shape[1], gt_image.shape[0]))
+    ref_image = cv2.resize(ref_image, (gt_image.shape[0], gt_image.shape[1]))
 
     top = 0 if input_image.shape[0] == new_h else np.random.randint(0, input_image.shape[0] - new_h)
     left = 0 if input_image.shape[1] == new_w else np.random.randint(0, input_image.shape[1] - new_w)
-    ref_image = ref_image[top: top + new_h, left: left + new_w]
+    
 
     # generate random coordinates for cropping
     top = 0
@@ -92,6 +92,7 @@ class Crop(object):
                   left: new_w]
     gt_image = gt_image[top: new_h,
                 left: new_w]
+    ref_image = ref_image[top: new_h, left: new_w]
 
     return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
 
@@ -306,6 +307,7 @@ class TolABTensor(object):
         input_lab = rgb2lab(input_image_rgb).astype("float32")
         input_L = np.expand_dims(input_lab[:, :, 0] / 50. - 1, -1)
 
+        
         gt_image = rgb2lab(gt_image).astype("float32")
         gt_L = np.expand_dims(gt_image[:, :, 0] / 50. - 1, -1)
         gt_ab = gt_image[:, :, 1:] / 110.
@@ -320,6 +322,8 @@ class TolABTensor(object):
             ref_gray = ref_gray.transpose((2, 0, 1))
             ref_gray = np.asarray(ref_gray, dtype=np.float32) / 255.
             ref_ab = ref_ab.transpose((2, 0, 1))
+        
+        
 
         # transpose to torch tensor
         input_L = input_L.transpose((2, 0, 1))

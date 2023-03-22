@@ -110,7 +110,7 @@ def create_dataset(hypes, train=True, real=False):
         loader_train = DataLoader(train_dataset,
                                   batch_size=hypes['train_params']['batch_size'],
                                   shuffle=True,
-                                  num_workers=4)
+                                  num_workers=1)
 
         val_dataset = OldPhotoDataset(hypes['val_file'],
                                       transform=transforms.Compose([Crop(256), TolABTensor()]))
