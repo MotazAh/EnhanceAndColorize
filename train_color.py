@@ -4,6 +4,7 @@ from utils.parser import train_parser
 
 import torch
 import torch.optim.lr_scheduler as lr_scheduler
+import cv2
 
 from tensorboardX import SummaryWriter
 from torchvision.models import resnet34, resnet101
@@ -118,9 +119,28 @@ def train(opt, hypes):
                 if use_gpu:
                   out_train = lab_to_rgb(input_l, out_train).cuda()
                   target_train = lab_to_rgb(gt_l, gt_ab).cuda()
+
+                  output_np = out_train[0].cpu().numpy()
+                  target_np = target_train[0].cpu().numpy()
                 else:
                   out_train = lab_to_rgb(input_l, out_train)
                   target_train = lab_to_rgb(gt_l, gt_ab)
+
+                  output_np = out_train[0].numpy()
+                  target_np = target_train[0].numpy()
+                
+
+                #output_np = output_np[0] * 255
+                output_np = output_np.transpose(1, 2, 0)
+
+                #target_np = target_np[0] * 255
+                target_np = target_np.transpose(1, 2, 0)
+
+                print(target_np.shape)
+
+                print("Writing output and target images")
+                cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
+                cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
                 psnr_train = loss.batch_psnr(out_train, target_train, 1.)
                 print("[epoch %d][%d/%d], total loss: %.4f, PSNR: %.4f" % (epoch + 1, i + 1, len(loader_train),

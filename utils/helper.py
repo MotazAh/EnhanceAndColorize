@@ -103,7 +103,7 @@ def create_dataset(hypes, train=True, real=False):
     if train:
         # if we only train the color restoration part
         #transform_operation = transforms.Compose([RandomCrop(256), TolABTensor()])
-        transform_operation = transforms.Compose([RandomCrop(256), TolABTensor()])
+        transform_operation = transforms.Compose([Crop(256), TolABTensor()])
         train_dataset = OldPhotoDataset(hypes['train_file'],
                                         transform=transform_operation
                                         )
@@ -340,16 +340,6 @@ def val_eval(model, att_model, loader_val, writer, opt, epoch, use_gpu):
         psnr += loss.batch_psnr(output, target_val, 1.)
         count += 1
 
-    
-    output_np = output_np[0] * 255
-    output_np = output_np.transpose(1, 2, 0)
-
-    target_np = target_np[0] * 255
-    target_np = target_np.transpose(1, 2, 0)
-
-    print("Writing output and target images")
-    cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
-    cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
     print('++++++++++++++++++++++++++++++++++++++++++++')
     print('At current epoch %d, the psnr on validation dataset is %f' % (
