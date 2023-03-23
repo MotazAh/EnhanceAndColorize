@@ -164,40 +164,32 @@ class WarpNet(nn.Module):
         A_features = self.layer(torch.cat((A_feature2_1, A_feature3_1, A_feature4_1, A_feature5_1), 1))
         B_features = self.layer(torch.cat((B_feature2_1, B_feature3_1, B_feature4_1, B_feature5_1), 1))
 
-        print("A_features")
-        print(A_features)
-        print("B_features")
-        print(B_features)
-
         # pairwise cosine similarity
-        theta = self.theta(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
-        print("theta")
-        print(theta)
+        #theta = self.theta(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        theta = A_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        
         theta = theta - theta.mean(dim=-1, keepdim=True)  # center the feature
         theta_norm = torch.norm(theta, 2, 1, keepdim=True) + sys.float_info.epsilon
         theta = torch.div(theta, theta_norm)
 
         theta_permute = theta.permute(0, 2, 1)  # 2*(feature_height*feature_width)*256
 
-        phi = self.phi(B_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
-        print("phi")
-        print(phi)
+        #phi = self.phi(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        phi = B_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        
         phi = phi - phi.mean(dim=-1, keepdim=True)  # center the feature
         phi_norm = torch.norm(phi, 2, 1, keepdim=True) + sys.float_info.epsilon
         phi = torch.div(phi, phi_norm)
+
         f = torch.matmul(theta_permute, phi)  # 2*(feature_height*feature_width)*(feature_height*feature_width)
-        
-        
         
         
         if detach_flag:
             f = f.detach()
-        
-        print("Similarity:")
-        print(f)
 
         f_similarity = f.unsqueeze_(dim=1)
         similarity_map = torch.max(f_similarity, -1, keepdim=True)[0]
+
         similarity_map = similarity_map.view(batch_size, 1, A_feature2_1.shape[2],  A_feature2_1.shape[3])
 
         # f can be negative
@@ -484,6 +476,8 @@ class Dense121UnetHistogramAttention(nn.Module):
                                     x_res_features[0], x_res_features[1], x_res_features[2], x_res_features[3],
                                     ref_res_features[0], ref_res_features[1], ref_res_features[2], ref_res_features[3])
 
+        print("sim_feature[0][1]")
+        print(sim_feature[0][1])
         # dense block 1
         feature1 = self.features.denseblock1(down0)
         down1 = self.features.transition1(feature1) # Downsample with transition
@@ -536,7 +530,7 @@ class Dense121UnetHistogramAttention(nn.Module):
         if (torch.isnan(output.mean()) and (not issue_found)):
           print("Issue after final conv")
           issue_found = True
-        output = torch.tensor(ref, requires_grad = True)
+
         results = {'output': output}
         return results
 
