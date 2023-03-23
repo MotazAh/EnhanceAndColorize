@@ -201,14 +201,8 @@ class WarpNet(nn.Module):
         feature_height, feature_width = B_hist.shape[2], B_hist.shape[3]
         B_hist = B_hist.view(batch_size, 2048, -1)
         B_hist = B_hist.permute(0, 2, 1)
-        print("B_Hist:")
-        print(B_hist.size())
-        print("f_div_C")
-        print(f_div_C.size())
 
         y_hist = torch.matmul(f_div_C, B_hist)
-        print("yhist")
-        print(y_hist.size())
         y_hist = y_hist.permute(0, 2, 1).contiguous()
         y_hist_1 = y_hist.view(batch_size, 2048, 32, 32)
 
@@ -237,21 +231,21 @@ class HistogramLayerLocal(nn.Module):
         if len(x.shape) == 3:
             ref = F.interpolate(ref,
                                 size=(x.shape[1], x.shape[2]),
-                                mode='bicubic')
+                                mode='nearest')
             if not type(attention_mask) == type(None):
                 attention_mask = torch.unsqueeze(attention_mask, 1)
                 attention_mask = F.interpolate(attention_mask,
                                                size=(x.shape[1], x.shape[2]),
-                                               mode='bicubic')
+                                               mode='nearest')
         else:
             ref = F.interpolate(ref,
                                 size=(x.shape[2], x.shape[3]),
-                                mode='bicubic')
+                                mode='nearest')
             if not type(attention_mask) == type(None):
                 attention_mask = torch.unsqueeze(attention_mask, 1)
                 attention_mask = F.interpolate(attention_mask,
                                                size=(x.shape[2], x.shape[3]),
-                                               mode='bicubic')
+                                               mode='nearest')
                 attention_mask = torch.flatten(attention_mask, start_dim=1, end_dim=-1)
 
         layers = []
@@ -487,13 +481,6 @@ class Dense121UnetHistogramAttention(nn.Module):
         # dense block 1
         feature1 = self.features.denseblock1(down0)
         down1 = self.features.transition1(feature1) # Downsample with transition
-
-        print("sim_feature[0][1]")
-        print(sim_feature[0][1].size())
-        print("sim_feature[0][0]]")
-        print(sim_feature[0][0].size())
-        print("down1")
-        print(down1.size())
 
         down1 = torch.cat([down1, sim_feature[0][1], sim_feature[0][0]], 1) # Concatenate similarity map with output of previous layer
         down1 = self.hf_1(down1) # Fusion Layer (Fuse similarity map with output of previous layer)
