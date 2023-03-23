@@ -476,8 +476,6 @@ class Dense121UnetHistogramAttention(nn.Module):
                                     x_res_features[0], x_res_features[1], x_res_features[2], x_res_features[3],
                                     ref_res_features[0], ref_res_features[1], ref_res_features[2], ref_res_features[3])
 
-        print("sim_feature[0][1]")
-        print(sim_feature[0][1])
         # dense block 1
         feature1 = self.features.denseblock1(down0)
         down1 = self.features.transition1(feature1) # Downsample with transition
