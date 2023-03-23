@@ -199,12 +199,12 @@ class WarpNet(nn.Module):
 
         # downsample the reference histogram
         feature_height, feature_width = B_hist.shape[2], B_hist.shape[3]
-        B_hist = B_hist.view(batch_size, 2048, -1)
+        B_hist = B_hist.view(batch_size, 512, -1)
         B_hist = B_hist.permute(0, 2, 1)
 
         y_hist = torch.matmul(f_div_C, B_hist)
         y_hist = y_hist.permute(0, 2, 1).contiguous()
-        y_hist_1 = y_hist.view(batch_size, 2048, 32, 32)
+        y_hist_1 = y_hist.view(batch_size, 512, feature_height, feature_width)
 
         # upsample, downspale the wrapped histogram feature for multi-level fusion
         upsample = nn.Upsample(scale_factor=2)
@@ -231,21 +231,21 @@ class HistogramLayerLocal(nn.Module):
         if len(x.shape) == 3:
             ref = F.interpolate(ref,
                                 size=(x.shape[1], x.shape[2]),
-                                mode='nearest')
+                                mode='bicubic')
             if not type(attention_mask) == type(None):
                 attention_mask = torch.unsqueeze(attention_mask, 1)
                 attention_mask = F.interpolate(attention_mask,
                                                size=(x.shape[1], x.shape[2]),
-                                               mode='nearest')
+                                               mode='bicubic')
         else:
             ref = F.interpolate(ref,
                                 size=(x.shape[2], x.shape[3]),
-                                mode='nearest')
+                                mode='bicubic')
             if not type(attention_mask) == type(None):
                 attention_mask = torch.unsqueeze(attention_mask, 1)
                 attention_mask = F.interpolate(attention_mask,
                                                size=(x.shape[2], x.shape[3]),
-                                               mode='nearest')
+                                               mode='bicubic')
                 attention_mask = torch.flatten(attention_mask, start_dim=1, end_dim=-1)
 
         layers = []
@@ -380,10 +380,10 @@ class Dense121UnetHistogramAttention(nn.Module):
 
         # histogram distribution fusion part, feature + similarity mask + histogram
         # The Fusion module is basically a Residual Dense Block
-        self.hf_1 = HistFusionModule(128 + 1 + 1024 * 2, 128)
-        self.hf_2 = HistFusionModule(256 + 1 + 1024 * 2, 256)
-        self.hf_3 = HistFusionModule(512 + 1 + 1024 * 2, 512)
-        self.hf_4 = HistFusionModule(1024 + 1 + 1024 * 2, 1024)
+        self.hf_1 = HistFusionModule(128 + 1 + 256 * 2, 128)
+        self.hf_2 = HistFusionModule(256 + 1 + 256 * 2, 256)
+        self.hf_3 = HistFusionModule(512 + 1 + 256 * 2, 512)
+        self.hf_4 = HistFusionModule(1024 + 1 + 256 * 2, 1024)
 
         # Decoder Part (Each is an upsample layer and a dense block after)
         self.up0 = Up(1024, 2048, 1024, args['bilinear'], args['nDenseLayer'][0], args['growthRate'])
@@ -468,8 +468,8 @@ class Dense121UnetHistogramAttention(nn.Module):
         x_attention_masks, x_res_features = att_model(normalized_x)
 
         # generate histogram for different size
-        ref_resize_by_8 = F.avg_pool2d(ref, 4)
-        x_resize_by_8 = F.avg_pool2d(x, 4)
+        ref_resize_by_8 = F.avg_pool2d(ref, 8)
+        x_resize_by_8 = F.avg_pool2d(x, 8)
         ref_hist = self.hist_layer_local(x_resize_by_8, ref_resize_by_8)
         #ref_hist = self.hist_layer_local(x, ref)
 
