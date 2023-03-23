@@ -328,7 +328,7 @@ class TolABTensor(object):
             ref_gray = ref_gray.transpose((2, 0, 1))
             ref_gray = np.asarray(ref_gray, dtype=np.float32) / 255.
             ref_ab = ref_ab.transpose((2, 0, 1))
-        
+
         # transpose to torch tensor
         input_L = input_L.transpose((2, 0, 1))
         input_image = input_image.transpose((2, 0, 1))
@@ -337,9 +337,14 @@ class TolABTensor(object):
         gt_L = gt_L.transpose((2, 0, 1))
         gt_ab = gt_ab.transpose((2, 0, 1))
 
+        #print("gt_L")
+        #print(gt_L)
+        #print("input_L")
+        #print(input_L)
+
         if 'ref_image' in sample:
             return {'input_image': torch.from_numpy(input_image),
-                    'input_L': torch.from_numpy(input_L),
+                    'input_L': torch.from_numpy(gt_L),
                     'gt_L': torch.from_numpy(gt_L),
                     'gt_ab': torch.from_numpy(gt_ab),
                     'ref_ab': torch.from_numpy(ref_ab),

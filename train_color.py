@@ -77,12 +77,10 @@ def train(opt, hypes):
                                                                    batch_data['input_L'], \
                                                                    batch_data['gt_ab'], batch_data['gt_L'], \
                                                                    batch_data['ref_gray'], batch_data['ref_ab']
-            """
-            print("ref_ab")
-            print(ref_ab[0])
-            print("gt_ab")
-            print(gt_ab[0])
-            print("\n")"""
+            #print("ref_gray")
+            #print(ref_gray)
+            #print("input_batch")
+            #print(input_batch)
 
             if use_gpu:
                 input_batch = input_batch.cuda()
