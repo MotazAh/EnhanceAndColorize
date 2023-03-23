@@ -165,8 +165,8 @@ class WarpNet(nn.Module):
         B_features = self.layer(torch.cat((B_feature2_1, B_feature3_1, B_feature4_1, B_feature5_1), 1))
 
         # pairwise cosine similarity
-        theta = self.theta(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
-        #theta = A_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        #theta = self.theta(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        theta = A_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
         
         theta = theta - theta.mean(dim=-1, keepdim=True)  # center the feature
         theta_norm = torch.norm(theta, 2, 1, keepdim=True) + sys.float_info.epsilon
@@ -174,8 +174,8 @@ class WarpNet(nn.Module):
 
         theta_permute = theta.permute(0, 2, 1)  # 2*(feature_height*feature_width)*256
 
-        phi = self.phi(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
-        #phi = B_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        #phi = self.phi(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        phi = B_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
         
         phi = phi - phi.mean(dim=-1, keepdim=True)  # center the feature
         phi_norm = torch.norm(phi, 2, 1, keepdim=True) + sys.float_info.epsilon
@@ -199,11 +199,18 @@ class WarpNet(nn.Module):
 
         # downsample the reference histogram
         feature_height, feature_width = B_hist.shape[2], B_hist.shape[3]
-        B_hist = B_hist.view(batch_size, 512, -1)
+        B_hist = B_hist.view(batch_size, 2048, -1)
         B_hist = B_hist.permute(0, 2, 1)
+        print("B_Hist:")
+        print(B_hist.size())
+        print("f_div_C")
+        print(f_div_C.size())
+
         y_hist = torch.matmul(f_div_C, B_hist)
+        print("yhist")
+        print(y_hist.size())
         y_hist = y_hist.permute(0, 2, 1).contiguous()
-        y_hist_1 = y_hist.view(batch_size, 512, feature_height, feature_width)
+        y_hist_1 = y_hist.view(batch_size, 2048, 32, 32)
 
         # upsample, downspale the wrapped histogram feature for multi-level fusion
         upsample = nn.Upsample(scale_factor=2)
@@ -379,10 +386,10 @@ class Dense121UnetHistogramAttention(nn.Module):
 
         # histogram distribution fusion part, feature + similarity mask + histogram
         # The Fusion module is basically a Residual Dense Block
-        self.hf_1 = HistFusionModule(128 + 1 + 256 * 2, 128)
-        self.hf_2 = HistFusionModule(256 + 1 + 256 * 2, 256)
-        self.hf_3 = HistFusionModule(512 + 1 + 256 * 2, 512)
-        self.hf_4 = HistFusionModule(1024 + 1 + 256 * 2, 1024)
+        self.hf_1 = HistFusionModule(128 + 1 + 1024 * 2, 128)
+        self.hf_2 = HistFusionModule(256 + 1 + 1024 * 2, 256)
+        self.hf_3 = HistFusionModule(512 + 1 + 1024 * 2, 512)
+        self.hf_4 = HistFusionModule(1024 + 1 + 1024 * 2, 1024)
 
         # Decoder Part (Each is an upsample layer and a dense block after)
         self.up0 = Up(1024, 2048, 1024, args['bilinear'], args['nDenseLayer'][0], args['growthRate'])
@@ -467,9 +474,10 @@ class Dense121UnetHistogramAttention(nn.Module):
         x_attention_masks, x_res_features = att_model(normalized_x)
 
         # generate histogram for different size
-        ref_resize_by_8 = F.avg_pool2d(ref, 8)
-        x_resize_by_8 = F.avg_pool2d(x, 8)
+        ref_resize_by_8 = F.avg_pool2d(ref, 4)
+        x_resize_by_8 = F.avg_pool2d(x, 4)
         ref_hist = self.hist_layer_local(x_resize_by_8, ref_resize_by_8)
+        #ref_hist = self.hist_layer_local(x, ref)
 
         # generate the similarity map and wrapped features
         sim_feature = self.warp_net(ref_hist,
@@ -479,6 +487,14 @@ class Dense121UnetHistogramAttention(nn.Module):
         # dense block 1
         feature1 = self.features.denseblock1(down0)
         down1 = self.features.transition1(feature1) # Downsample with transition
+
+        print("sim_feature[0][1]")
+        print(sim_feature[0][1].size())
+        print("sim_feature[0][0]]")
+        print(sim_feature[0][0].size())
+        print("down1")
+        print(down1.size())
+
         down1 = torch.cat([down1, sim_feature[0][1], sim_feature[0][0]], 1) # Concatenate similarity map with output of previous layer
         down1 = self.hf_1(down1) # Fusion Layer (Fuse similarity map with output of previous layer)
 
