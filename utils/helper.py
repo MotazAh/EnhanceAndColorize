@@ -103,7 +103,7 @@ def create_dataset(hypes, train=True, real=False):
     if train:
         # if we only train the color restoration part
         #transform_operation = transforms.Compose([RandomCrop(256), TolABTensor()])
-        transform_operation = transforms.Compose([Crop(256), TolABTensor()])
+        transform_operation = transforms.Compose([RandomCrop(256), TolABTensor()])
         train_dataset = OldPhotoDataset(hypes['train_file'],
                                         transform=transform_operation
                                         )
