@@ -153,6 +153,59 @@ class RandomCrop(object):
 
         return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
 
+class RandomCropClose(object):
+    """
+    Crop both input image and ground truth. Ref is close to input
+    Args:
+        output_size (tuple or int): Desired output size. If int, square crop
+            is made.
+    """
+
+    def __init__(self, output_size=256):
+        assert isinstance(output_size, (int, tuple))
+        if isinstance(output_size, int):
+            self.output_size = (output_size, output_size)
+        else:
+            assert len(output_size) == 2
+            self.output_size = output_size
+
+    def __call__(self, sample):
+        input_image, gt_image = sample['input_image'], sample['gt_image']
+
+        # make sure crop size is smaller than image size
+        h, w = input_image.shape[:2]
+        new_h, new_w = self.output_size
+
+        if h < new_h:
+            gt_image = cv2.resize(gt_image, None, fx=new_h / h, fy=new_h / h)
+            input_image = cv2.resize(input_image, None, None, fx=new_h / h, fy=new_h / h)
+        if w < new_w:
+            gt_image = cv2.resize(gt_image, None, fx=new_w / w, fy=new_w / w)
+            input_image = cv2.resize(input_image, None, fx=new_w / w, fy=new_w / w)
+
+        assert gt_image.shape[0] >= new_h and gt_image.shape[1] >= new_w
+        assert input_image.shape[0] >= new_h and input_image.shape[1] >= new_w
+
+        # used for training as reference image
+        ref_image = gt_image.copy() if 'ref_image' not in sample else sample['ref_image']
+        if h < new_h:
+          ref_image = cv2.resize(ref_image, None, fx=new_h / h, fy=new_h / h)
+        if w < new_w:
+          ref_image = cv2.resize(ref_image, None, fx=new_w / w, fy=new_w / w)
+
+        top = 0 if input_image.shape[0] == new_h else np.random.randint(0, input_image.shape[0] - new_h)
+        left = 0 if input_image.shape[1] == new_w else np.random.randint(0, input_image.shape[1] - new_w)
+        ref_image = ref_image[top: top + new_h, left: left + new_w]
+
+        # generate random coordinates for cropping
+        top = 0 if input_image.shape[0] == new_h else np.random.randint(0, input_image.shape[0] - new_h)
+        left = 0 if input_image.shape[1] == new_w else np.random.randint(0, input_image.shape[1] - new_w)
+        input_image = input_image[top: top + new_h,
+                      left: left + new_w]
+        gt_image = gt_image[top: top + new_h,
+                   left: left + new_w]
+
+        return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
 
 class RandomFlip(object):
     """
@@ -324,6 +377,8 @@ class TolABTensor(object):
             ref_gray = np.expand_dims(ref_gray, -1)
             ref_lab = rgb2lab(ref_image).astype("float32")
             ref_ab = ref_lab[:, :, 1:] / 110.
+            ref_l = np.expand_dims(ref_lab[:, :, 0] / 50. - 1, -1)
+            ref_l = ref_l.transpose((2, 0, 1))
 
             ref_gray = ref_gray.transpose((2, 0, 1))
             ref_gray = np.asarray(ref_gray, dtype=np.float32) / 255.
@@ -348,7 +403,8 @@ class TolABTensor(object):
                     'gt_L': torch.from_numpy(gt_L),
                     'gt_ab': torch.from_numpy(gt_ab),
                     'ref_ab': torch.from_numpy(ref_ab),
-                    'ref_gray': torch.from_numpy(ref_gray)}
+                    'ref_gray': torch.from_numpy(ref_gray),
+                    'ref_l': torch.from_numpy(ref_l)}
         else:
             return {'input_image': torch.from_numpy(input_image),
                     'input_L': torch.from_numpy(input_L),

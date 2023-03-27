@@ -5,6 +5,7 @@ from utils.parser import train_parser
 import torch
 import torch.optim.lr_scheduler as lr_scheduler
 import cv2
+import numpy as np
 
 from tensorboardX import SummaryWriter
 from torchvision.models import resnet34, resnet101
@@ -73,10 +74,11 @@ def train(opt, hypes):
             model.zero_grad()
             optimizer.zero_grad()
 
-            input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab = batch_data['input_image'], \
+            input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab, ref_l = batch_data['input_image'], \
                                                                    batch_data['input_L'], \
                                                                    batch_data['gt_ab'], batch_data['gt_L'], \
-                                                                   batch_data['ref_gray'], batch_data['ref_ab']
+                                                                   batch_data['ref_gray'], batch_data['ref_ab'], \
+                                                                   batch_data['ref_l']
             #print("ref_gray")
             #print(ref_gray)
             #print("input_batch")
@@ -89,6 +91,7 @@ def train(opt, hypes):
                 gt_l = gt_l.cuda()
                 ref_gray = ref_gray.cuda()
                 ref_ab = ref_ab.cuda()
+                ref_l = ref_l.cuda()
             
             if torch.isnan(input_batch).any():
               print("Found nan in input_batch")
@@ -125,15 +128,21 @@ def train(opt, hypes):
                 if use_gpu:
                   out_train = lab_to_rgb(input_l, out_train).cuda()
                   target_train = lab_to_rgb(gt_l, gt_ab).cuda()
+                  ref_train = lab_to_rgb(ref_l, ref_ab).cuda()
 
                   output_np = out_train[0].cpu().numpy()
                   target_np = target_train[0].cpu().numpy()
+                  ref_np = ref_train[0].cpu().numpy()
+
+
                 else:
                   out_train = lab_to_rgb(input_l, out_train)
                   target_train = lab_to_rgb(gt_l, gt_ab)
+                  ref_train = lab_to_rgb(ref_l, ref_ab)
 
                   output_np = out_train[0].numpy()
                   target_np = target_train[0].numpy()
+                  ref_np = ref_train[0].numpy
                 
                 print(out_train.size())
 
@@ -145,9 +154,13 @@ def train(opt, hypes):
                 target_np = target_np * 255
                 target_np = target_np.transpose(1, 2, 0)
 
-                
+                ref_np = ref_np * 255
+                ref_np = ref_np.transpose(1, 2, 0)
 
-                print("Writing output and target images")
+                print("Writing output, target and ref images")
+
+                output_np = np.concatenate((target_np, ref_np, output_np), 1)
+
                 cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
                 cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
