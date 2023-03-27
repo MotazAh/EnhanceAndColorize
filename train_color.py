@@ -74,11 +74,11 @@ def train(opt, hypes):
             model.zero_grad()
             optimizer.zero_grad()
 
-            input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab, ref_l = batch_data['input_image'], \
+            input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab, ref_l, input_gray = batch_data['input_image'], \
                                                                    batch_data['input_L'], \
                                                                    batch_data['gt_ab'], batch_data['gt_L'], \
                                                                    batch_data['ref_gray'], batch_data['ref_ab'], \
-                                                                   batch_data['ref_l']
+                                                                   batch_data['ref_l'], batch_data['input_gray']
             #print("ref_gray")
             #print(ref_gray)
             #print("input_batch")
@@ -159,7 +159,7 @@ def train(opt, hypes):
 
                 print("Writing output, target and ref images")
 
-                output_np = np.concatenate((target_np, ref_np, output_np), 1)
+                output_np = np.concatenate((input_gray[0], ref_np, output_np, target_np), 1)
 
                 cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
                 cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))

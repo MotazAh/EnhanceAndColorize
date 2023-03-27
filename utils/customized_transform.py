@@ -153,9 +153,9 @@ class RandomCrop(object):
 
         return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
 
-class RandomCropClose(object):
+class RandomCropSame(object):
     """
-    Crop both input image and ground truth. Ref is close to input
+    Crop both input image and ground truth. Ref is same to input
     Args:
         output_size (tuple or int): Desired output size. If int, square crop
             is made.
@@ -193,10 +193,6 @@ class RandomCropClose(object):
         if w < new_w:
           ref_image = cv2.resize(ref_image, None, fx=new_w / w, fy=new_w / w)
 
-        top = 0 if input_image.shape[0] == new_h else np.random.randint(0, input_image.shape[0] - new_h)
-        left = 0 if input_image.shape[1] == new_w else np.random.randint(0, input_image.shape[1] - new_w)
-        ref_image = ref_image[top: top + new_h, left: left + new_w]
-
         # generate random coordinates for cropping
         top = 0 if input_image.shape[0] == new_h else np.random.randint(0, input_image.shape[0] - new_h)
         left = 0 if input_image.shape[1] == new_w else np.random.randint(0, input_image.shape[1] - new_w)
@@ -204,6 +200,7 @@ class RandomCropClose(object):
                       left: left + new_w]
         gt_image = gt_image[top: top + new_h,
                    left: left + new_w]
+        ref_image = ref_image[top: top + new_h, left: left + new_w]
 
         return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
 
@@ -232,13 +229,13 @@ class RandomBlur(object):
     """
 
     def __call__(self, sample):
-        input_image, gt_image = sample['input_image'], sample['gt_image']
+        ref_image = sample['ref_image']
 
         seq = iaa.Sequential([iaa.GaussianBlur(sigma=(0.0, 3.0)),
                               iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5)])
 
-        input_image = seq(image=input_image)
-        sample.update({'input_image': input_image.copy(), 'gt_image': gt_image.copy()})
+        ref_image = seq(image=ref_image)
+        sample.update({'ref_image': ref_image.copy()})
 
         return sample
 
@@ -404,7 +401,8 @@ class TolABTensor(object):
                     'gt_ab': torch.from_numpy(gt_ab),
                     'ref_ab': torch.from_numpy(ref_ab),
                     'ref_gray': torch.from_numpy(ref_gray),
-                    'ref_l': torch.from_numpy(ref_l)}
+                    'ref_l': torch.from_numpy(ref_l),
+                    'input_gray': input_image_rgb}
         else:
             return {'input_image': torch.from_numpy(input_image),
                     'input_L': torch.from_numpy(input_L),
