@@ -275,7 +275,7 @@ class RandomAffine(object):
 
 class RandomContrast(object):
   def __call__(self, sample):
-    aug = iaa.GammaContrast((0.5, 2.5))
+    aug = iaa.GammaContrast((0.5, 3.0))
 
     ref_image = sample['ref_image']
     seq = iaa.Sequential([aug])
