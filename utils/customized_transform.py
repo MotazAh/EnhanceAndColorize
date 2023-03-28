@@ -200,6 +200,12 @@ class RandomCropSame(object):
                       left: left + new_w]
         gt_image = gt_image[top: top + new_h,
                    left: left + new_w]
+        
+        if left <= (ref_image.shape[1] / 2):
+          left += int(ref_image.shape[1] / 2)
+        else:
+          left -= int(ref_image.shape[1] / 2)
+
         ref_image = ref_image[top: top + new_h, left: left + new_w]
 
         return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
@@ -259,6 +265,19 @@ class RandomAffine(object):
         sample.update({'ref_image': ref_image})
 
         return sample
+
+
+class RandomContrast(object):
+  def __call__(self, sample):
+    aug = iaa.GammaContrast((0.5, 2.5))
+
+    ref_image = sample['ref_image']
+    seq = iaa.Sequential([aug])
+    ref_image = seq(image=ref_image)
+
+    sample.update({'ref_image': ref_image})
+
+    return sample
 
 
 class RandomHueSaturation(object):
