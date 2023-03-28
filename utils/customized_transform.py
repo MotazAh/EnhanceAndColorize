@@ -97,7 +97,9 @@ class Crop(object):
                 left: new_w]
     ref_image = ref_image[top: new_h, left: new_w]
 
-    return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
+    sample.update({'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image})
+
+    return sample
 
 class RandomCrop(object):
     """
@@ -151,7 +153,9 @@ class RandomCrop(object):
         gt_image = gt_image[top: top + new_h,
                    left: left + new_w]
 
-        return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
+        sample.update({'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image})
+
+        return sample
 
 class RandomCropSame(object):
     """
@@ -202,13 +206,15 @@ class RandomCropSame(object):
                    left: left + new_w]
         
         if left <= (ref_image.shape[1] / 2):
-          left += int(ref_image.shape[1] / 2)
+          left += int(new_w / 2)
         else:
-          left -= int(ref_image.shape[1] / 2)
+          left -= int(new_w / 2)
 
         ref_image = ref_image[top: top + new_h, left: left + new_w]
 
-        return {'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image}
+        sample.update({'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image})
+
+        return sample
 
 class RandomFlip(object):
     """

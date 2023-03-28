@@ -142,7 +142,7 @@ def train(opt, hypes):
 
                   output_np = out_train[0].numpy()
                   target_np = target_train[0].numpy()
-                  ref_np = ref_train[0].numpy
+                  ref_np = ref_train[0].numpy()
                 
                 print(out_train.size())
 
