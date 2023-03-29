@@ -103,17 +103,17 @@ def create_dataset(hypes, train=True, real=False):
     if train:
         # if we only train the color restoration part
         #transform_operation = transforms.Compose([RandomCrop(256), TolABTensor()])
-        transform_operation = transforms.Compose([RandomCropSame(256), RandomFlip(), RandomAffine(), RandomContrast(), RandomBlur(), TolABTensor()])
+        transform_operation = transforms.Compose([RandomCrop(256), TolABTensor()])
         train_dataset = OldPhotoDataset(hypes['train_file'],
                                         transform=transform_operation
                                         )
         loader_train = DataLoader(train_dataset,
                                   batch_size=hypes['train_params']['batch_size'],
                                   shuffle=True,
-                                  num_workers=1)
+                                  num_workers=4)
 
         val_dataset = OldPhotoDataset(hypes['val_file'],
-                                      transform=transforms.Compose([Crop(256), TolABTensor()]))
+                                      transform=transforms.Compose([RandomCrop(256), TolABTensor()]))
         loader_val = DataLoader(val_dataset, batch_size=1, shuffle=False)
 
         return loader_train, loader_val

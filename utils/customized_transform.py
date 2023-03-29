@@ -241,13 +241,13 @@ class RandomBlur(object):
     """
 
     def __call__(self, sample):
-        ref_image = sample['ref_image']
+        input_image, gt_image = sample['input_image'], sample['gt_image']
 
         seq = iaa.Sequential([iaa.GaussianBlur(sigma=(0.0, 3.0)),
                               iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5)])
 
-        ref_image = seq(image=ref_image)
-        sample.update({'ref_image': ref_image.copy()})
+        input_image = seq(image=input_image)
+        sample.update({'input_image': input_image.copy(), 'gt_image': gt_image.copy()})
 
         return sample
 
