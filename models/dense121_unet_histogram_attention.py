@@ -165,8 +165,8 @@ class WarpNet(nn.Module):
         B_features = self.layer(torch.cat((B_feature2_1, B_feature3_1, B_feature4_1, B_feature5_1), 1))
 
         # pairwise cosine similarity
-        theta = self.theta(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
-        #theta = A_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        #theta = self.theta(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        theta = A_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
         
         theta = theta - theta.mean(dim=-1, keepdim=True)  # center the feature
         theta_norm = torch.norm(theta, 2, 1, keepdim=True) + sys.float_info.epsilon
@@ -174,8 +174,8 @@ class WarpNet(nn.Module):
 
         theta_permute = theta.permute(0, 2, 1)  # 2*(feature_height*feature_width)*256
 
-        phi = self.phi(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
-        #phi = B_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        #phi = self.phi(A_features).view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
+        phi = B_features.view(batch_size, self.inter_channels, -1)  # 2*256*(feature_height*feature_width)
         
         phi = phi - phi.mean(dim=-1, keepdim=True)  # center the feature
         phi_norm = torch.norm(phi, 2, 1, keepdim=True) + sys.float_info.epsilon
