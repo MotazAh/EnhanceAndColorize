@@ -144,9 +144,9 @@ def train(opt, hypes):
                   target_np = target_train[0].numpy()
                   ref_np = ref_train[0].numpy()
                 
-                print(out_train.size())
+                #print(out_train.size())
 
-                print(target_np.shape)
+                #print(target_np.shape)
 
                 output_np = output_np * 255
                 output_np = output_np.transpose(1, 2, 0)

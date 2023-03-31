@@ -8,6 +8,8 @@ import torch
 import torch.optim.lr_scheduler as lr_scheduler
 from utils.customized_transform import *
 
+from skimage.metrics import structural_similarity as SSIM
+
 from tensorboardX import SummaryWriter
 from torchvision.models import resnet34, resnet101
 from torchvision.models.resnet import BasicBlock, Bottleneck
@@ -57,51 +59,73 @@ def test(opt, hypes):
 
   for i, batch_data in enumerate(loader_test):
     # clean up grad first
-    input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab = batch_data['input_image'], \
-                                                            batch_data['input_L'], \
-                                                            batch_data['gt_ab'], batch_data['gt_L'], \
-                                                            batch_data['ref_gray'], batch_data['ref_ab']
+    input_batch, input_l, gt_ab, gt_l, ref_gray, ref_ab, ref_l, input_gray = batch_data['input_image'], \
+                                                                   batch_data['input_L'], \
+                                                                   batch_data['gt_ab'], batch_data['gt_L'], \
+                                                                   batch_data['ref_gray'], batch_data['ref_ab'], \
+                                                                   batch_data['ref_l'], batch_data['input_gray']
     # model inference and loss cal
+    out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+    out_test = torch.clamp(out_dict['output'], -1., 1.)
     
+    L_tensor = torch.zeros(1, 1, 256, 256)
+
     if use_gpu:
-      input_batch = input_batch.cuda()
-      input_l = input_l.cuda()
-      gt_ab = gt_ab.cuda()
-      gt_l = gt_l.cuda()
-      ref_gray = ref_gray.cuda()
-      ref_ab = ref_ab.cuda()
-      out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+      out_ab_rgb = lab_to_rgb(L_tensor, out_test).cuda()
+      out_test = lab_to_rgb(input_l, out_test).cuda()
+      ref_train = lab_to_rgb(ref_l, ref_ab).cuda()
+      ref_ab_rgb = lab_to_rgb(L_tensor, ref_ab).cuda()
+      
 
-      output = torch.clamp(out_dict['output'], -1, 1.)
-      output = lab_to_rgb(input_l, output).cuda()
-      target_val = lab_to_rgb(gt_l, gt_ab).cuda()
-
-      output_np = output.cpu().numpy()
-      target_np = target_val.cpu().numpy()
+      output_np = out_test[0].cpu().numpy()
+      ref_np = ref_train[0].cpu().numpy()
+      out_ab_np = out_ab_rgb[0].cpu().numpy()
+      ref_ab_np = ref_ab_rgb[0].cpu().numpy()
     else:
-      input_batch = input_batch
-      input_l = input_l
-      gt_ab = gt_ab
-      gt_l = gt_l
-      ref_gray = ref_gray
-      ref_ab = ref_ab
-      out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
+      out_ab_rgb = lab_to_rgb(L_tensor, out_test)
+      out_test = lab_to_rgb(input_l, out_test)
+      ref_train = lab_to_rgb(ref_l, ref_ab)
+      ref_ab_rgb = lab_to_rgb(L_tensor, ref_ab)
+      
 
-      output = torch.clamp(out_dict['output'], -1, 1.)
-      output = lab_to_rgb(input_l, output)
-      target_val = lab_to_rgb(gt_l, gt_ab)
-
-      output_np = output.numpy()
-      target_np = target_val.numpy()
-
-    output_np = output_np[0] * 255
+      output_np = out_test[0].numpy()
+      ref_np = ref_train[0].numpy()
+      out_ab_np = out_ab_rgb[0].cpu().numpy()
+      ref_ab_np = ref_ab_rgb[0].cpu().numpy()
+    
+    
+    
+    output_np = output_np * 255
     output_np = output_np.transpose(1, 2, 0)
 
-    target_np = target_np[0] * 255
-    target_np = target_np.transpose(1, 2, 0)
-    print("Writing output and target images")
+    ref_np = ref_np * 255
+    ref_np = ref_np.transpose(1, 2, 0)
+
+    ref_ab_np = ref_ab_np * 255
+    ref_ab_np = ref_ab_np.transpose(1, 2, 0)
+
+    out_ab_np = out_ab_np * 255
+    out_ab_np = out_ab_np.transpose(1, 2, 0)
+
+    print("Writing output, target and ref images")
+
+    out_gray = cv2.cvtColor(output_np, cv2.COLOR_BGR2GRAY)
+    gt_gray = cv2.imread(opt.img_path, 0)
+
+    output_np = np.concatenate((input_gray[0], ref_np, output_np, ref_ab_np, out_ab_np), 1)
+
+    # Convert images to grayscale
+    
+    
+    print(out_gray.shape)
+    print(gt_gray.shape)
+
+    (score, diff) = SSIM(out_gray, gt_gray, full=True)
+
+    print(score)
+
     cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
-    cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
+    #cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
 class DatasetMaker(Dataset):
     """
