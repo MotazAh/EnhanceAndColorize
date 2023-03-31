@@ -13,8 +13,8 @@ def load_yaml(file, opt):
     :param file: yaml file path
     :return:
     """
-    if opt.model_dir:
-        file = os.path.join(opt.model_dir, 'config.yaml')
+    #if opt.model_dir:
+    #    file = os.path.join(opt.model_dir, 'config.yaml')
     stream = open(file, 'r')
     loader = yaml.SafeLoader
     loader.add_implicit_resolver(

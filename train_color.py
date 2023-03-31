@@ -192,6 +192,7 @@ def train(opt, hypes):
 if __name__ == '__main__':
   # load training configuration from yaml file
   opt = train_parser()
+  print(opt.hypes_yaml)
   hypes = yaml_utils.load_yaml(opt.hypes_yaml, opt)
   opt.use_gpu = hypes["train_params"]["use_gpu"]
   # Check gpu
