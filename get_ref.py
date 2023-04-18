@@ -216,6 +216,10 @@ def get_feature_vectors(img_dir_path, output_path):
       for element in img_vect:
         f.write(str(element) + '\n')
 
+def save_image(img_path, out_path="best_ref.jpg"):
+  img = cv2.imread(img_path)
+  cv2.imwrite(out_path, img)
+
 def run_operation(opt):
   opt = refdata_parser()
   print(opt.ref_feature_dir)
@@ -227,7 +231,10 @@ def run_operation(opt):
   elif opt.op == "get_ref":
     feature_reader(opt.ref_feature_dir, opt.ref_dir, False, False)
     print("Finding top 2 images")
-    return find_top_image(opt.img_path, verbose=True)
+    top = find_top_image(opt.img_path, verbose=True)[0]
+    save_image(top)
+    save_image(opt.img_path, "input_image.jpg")
+
   elif opt.op == "get_refs":
     feature_reader(opt.ref_feature_dir, opt.ref_dir, opt.feature_dir, opt.img_path)
     print("Finding top images")

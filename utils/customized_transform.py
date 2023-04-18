@@ -44,6 +44,20 @@ from skimage.color import rgb2lab, lab2rgb
 #         return sample
 
 
+class Resize(object):
+  def __init__(self, output_size=256):
+    self.output_size = (output_size, output_size)
+  
+  def __call__(self, sample):
+    input_image, gt_image = sample['input_image'], sample['gt_image']
+    ref_image = sample['ref_image']
+    input_image = cv2.resize(input_image, self.output_size)
+    gt_image = cv2.resize(gt_image, self.output_size)
+    ref_image = cv2.resize(ref_image, self.output_size)
+
+    sample.update({'input_image': input_image, 'gt_image': gt_image, 'ref_image': ref_image})
+    return sample
+
 class Crop(object):
   """
   Crop both input image and ground truth
