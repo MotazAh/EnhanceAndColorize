@@ -154,8 +154,10 @@ def feature_reader(ref_feature_dir_path, ref_dir, feature_dir_path=False, img_di
     ref_img_path = os.path.join(ref_dir, file_name[:-4])
     img_ref_file_paths.append(ref_img_path)
     counter += 1
+    if counter == (len(ref_feature_dir) - 1):
+      break
   
-  if feature_dir_path == "":
+  if feature_dir_path == "" or feature_dir_path == False:
     return
   
   feature_dir = os.listdir(feature_dir_path)
@@ -216,12 +218,14 @@ def get_feature_vectors(img_dir_path, output_path):
 
 def run_operation(opt):
   opt = refdata_parser()
+  print(opt.ref_feature_dir)
+  print(opt.data_dir)
   if opt.op == "get_features":
     print("Getting Features")
     get_feature_vectors(opt.data_dir, opt.feature_dir)
     print("Done")
   elif opt.op == "get_ref":
-    feature_reader(opt.feature_dir, opt.ref_dir, False, False)
+    feature_reader(opt.ref_feature_dir, opt.ref_dir, False, False)
     print("Finding top 2 images")
     return find_top_image(opt.img_path, verbose=True)
   elif opt.op == "get_refs":
