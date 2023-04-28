@@ -33,3 +33,13 @@ def test_parser():
 
   opt = parser.parse_args()
   return opt
+
+def test_blank_parser():
+  parser = argparse.ArgumentParser(description="synthetic data generation")
+  parser.add_argument("--hypes_yaml", type=str, default='', help='data generation yaml file needed ')
+  parser.add_argument('--model_dir', default='', help='Continued training path')
+  parser.add_argument("--img_path", type=str, default='')
+  parser.add_argument("--ref_path", type=str, default='')
+
+  opt = parser.parse_args()
+  return opt

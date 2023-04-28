@@ -1,6 +1,6 @@
 import os
 
-from utils.parser import test_parser
+from utils.parser import test_parser, test_blank_parser
 
 import numpy as np
 import cv2
@@ -27,7 +27,7 @@ def test(opt, hypes):
   
   print('loading dataset')
   # Real test is for testing real grayscale old images (Not available currently)
-  transform_operation = transforms.Compose([Crop(), TolABTensor()])
+  transform_operation = transforms.Compose([Resize(), TolABTensor()])
 
   test_dataset = DatasetMaker(opt.img_path, opt.ref_path,
                                   transform=transform_operation)
@@ -64,6 +64,15 @@ def test(opt, hypes):
                                                                    batch_data['gt_ab'], batch_data['gt_L'], \
                                                                    batch_data['ref_gray'], batch_data['ref_ab'], \
                                                                    batch_data['ref_l'], batch_data['input_gray']
+    
+    if use_gpu:
+                input_batch = input_batch.cuda()
+                input_l = input_l.cuda()
+                gt_ab = gt_ab.cuda()
+                gt_l = gt_l.cuda()
+                ref_gray = ref_gray.cuda()
+                ref_ab = ref_ab.cuda()
+                ref_l = ref_l.cuda()
     # model inference and loss cal
     out_dict = model(input_l, input_batch, ref_ab, ref_gray, att_model)
     out_test = torch.clamp(out_dict['output'], -1., 1.)
@@ -71,6 +80,7 @@ def test(opt, hypes):
     L_tensor = torch.zeros(1, 1, 256, 256)
 
     if use_gpu:
+      L_tensor = L_tensor.cuda()
       out_ab_rgb = lab_to_rgb(L_tensor, out_test).cuda()
       out_test = lab_to_rgb(input_l, out_test).cuda()
       ref_train = lab_to_rgb(ref_l, ref_ab).cuda()
@@ -112,7 +122,7 @@ def test(opt, hypes):
     out_gray = cv2.cvtColor(output_np, cv2.COLOR_BGR2GRAY)
     gt_gray = cv2.imread(opt.img_path, 0)
 
-    output_np = np.concatenate((input_gray[0], ref_np, output_np, ref_ab_np, out_ab_np), 1)
+    output_np_FAT = np.concatenate((input_gray[0], ref_np, output_np, ref_ab_np, out_ab_np), 1)
 
     # Convert images to grayscale
     
@@ -120,11 +130,15 @@ def test(opt, hypes):
     print(out_gray.shape)
     print(gt_gray.shape)
 
-    (score, diff) = SSIM(out_gray, gt_gray, full=True)
+    #(score, diff) = SSIM(out_gray, gt_gray, full=True)
 
-    print(score)
+    #print(score)
 
-    cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np_FAT, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("Dataset/output_colored.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
+
+    # Return colored image
+    return cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR)
     #cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
 class DatasetMaker(Dataset):
@@ -184,6 +198,21 @@ class DatasetMaker(Dataset):
 if __name__ == '__main__':
   # load training configuration from yaml file
   opt = test_parser()
+  hypes = yaml_utils.load_yaml(opt.hypes_yaml, opt)
+  opt.use_gpu = hypes["train_params"]["use_gpu"]
+  # Check gpu
+  #opt.use_gpu
+  if opt.use_gpu:
+    print("Using gpu")
+  else:
+    print("Not using gpu")
+  
+  print("Starting")
+  test(opt, hypes)
+
+def start_test(opt):
+
+  # load training configuration from yaml file
   hypes = yaml_utils.load_yaml(opt.hypes_yaml, opt)
   opt.use_gpu = hypes["train_params"]["use_gpu"]
   # Check gpu
