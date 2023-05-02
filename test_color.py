@@ -136,12 +136,12 @@ def test(opt, hypes):
 
     cv2.imwrite("Dataset/output.jpg", cv2.cvtColor(output_np_FAT, cv2.COLOR_RGB2BGR))
     cv2.imwrite("Dataset/output_colored.jpg", cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR))
-<<<<<<< HEAD
+#<<<<<<< HEAD
 
     # Return colored image
-    return cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR)
-=======
->>>>>>> 04570266a04f5d1f0f33d914d14411826b15df4e
+#    return cv2.cvtColor(output_np, cv2.COLOR_RGB2BGR)
+#=======
+#>>>>>>> 04570266a04f5d1f0f33d914d14411826b15df4e
     #cv2.imwrite("Dataset/target.jpg", cv2.cvtColor(target_np, cv2.COLOR_RGB2BGR))
 
 class DatasetMaker(Dataset):
