@@ -234,12 +234,12 @@ def run_operation(opt):
     feature_reader(opt.ref_feature_dir, opt.ref_dir, False, False)
     print("Finding top 2 images")
     top = find_top_image(opt.img_path, verbose=True)[0]
-<<<<<<< HEAD
+#<<<<<<< HEAD
     
-=======
-    save_image(top)
-    save_image(opt.img_path, "input_image.jpg")
->>>>>>> 04570266a04f5d1f0f33d914d14411826b15df4e
+#=======
+#    save_image(top)
+#    save_image(opt.img_path, "input_image.jpg")
+#>>>>>>> 04570266a04f5d1f0f33d914d14411826b15df4e
 
   elif opt.op == "get_refs":
     feature_reader(opt.ref_feature_dir, opt.ref_dir, opt.feature_dir, opt.img_path)
